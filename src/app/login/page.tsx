@@ -1,43 +1,58 @@
 import Link from "next/link";
 import { signIn } from "@/auth";
+import Wordmark from "@/components/Wordmark";
+
+export const metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden px-6">
-      <div className="pointer-events-none absolute top-0 left-1/2 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-fuchsia-600/20 blur-[130px]" />
-
-      <Link href="/" className="relative text-sm text-gray-500 hover:text-gray-300">
-        ← Back to home
-      </Link>
-
-      <div className="relative text-center">
-        <span className="mx-auto block h-6 w-6 rounded-md bg-gradient-to-br from-fuchsia-500 to-sky-500" />
-        <h1 className="mt-4 text-3xl font-bold text-white">Foundry</h1>
-        <p className="mx-auto mt-3 max-w-md text-gray-400">
-          Sign in and put a three-agent AI software company to work on your repositories —
-          ideating, building, and shipping tested improvements around the clock.
-        </p>
+    <main className="mx-auto flex min-h-screen max-w-page flex-col px-6 sm:px-10">
+      <div className="flex items-center justify-between py-6">
+        <Wordmark />
+        <Link href="/" className="link font-mono text-[11px] uppercase tracking-[0.16em]">
+          Back
+        </Link>
       </div>
 
-      <form
-        className="relative"
-        action={async () => {
-          "use server";
-          await signIn("github", { redirectTo: "/" });
-        }}
-      >
-        <button
-          type="submit"
-          className="rounded-xl bg-gradient-to-r from-fuchsia-500 to-sky-500 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition-transform hover:scale-105"
-        >
-          Sign in with GitHub
-        </button>
-      </form>
+      <div className="grid flex-1 items-center gap-12 py-16 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <p className="eyebrow mb-8">
+            <span className="text-accent">00</span>&ensp;Sign in
+          </p>
+          <h1 className="font-serif text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.95] text-ink">
+            Clock in with <em>GitHub.</em>
+          </h1>
+          <p className="mt-8 max-w-md text-ink-2">
+            GitHub is used only to identify you. Access to each repository is granted later with
+            a token you control, encrypted at rest, revocable at any time.
+          </p>
+          <form
+            className="mt-10"
+            action={async () => {
+              "use server";
+              await signIn("github", { redirectTo: "/" });
+            }}
+          >
+            <button type="submit" className="btn-accent btn-lg">
+              Continue with GitHub
+            </button>
+          </form>
+        </div>
 
-      <p className="relative max-w-sm text-center text-xs text-gray-600">
-        We only use GitHub to identify you. Repository access is granted per-repo with tokens you
-        control, encrypted at rest, and revocable any time.
-      </p>
+        <dl className="divide-y divide-rule border-t border-rule-2 lg:col-span-4 lg:col-start-9">
+          {[
+            ["Starter credit", "$1.00, no card"],
+            ["Repository access", "Per-repo token, Contents and Pull requests scopes"],
+            ["Stored", "AES-256-GCM, server side"],
+            ["Revoke", "Any time, from GitHub or from Foundry"],
+          ].map(([k, v]) => (
+            <div key={k} className="grid grid-cols-[8rem_1fr] gap-4 py-3 text-[13px]">
+              <dt className="eyebrow">{k}</dt>
+              <dd className="text-ink">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </main>
   );
 }

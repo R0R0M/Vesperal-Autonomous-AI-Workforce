@@ -1,302 +1,270 @@
 import Link from "next/link";
-import ThemeToggle from "./ThemeToggle";
+import Wordmark from "./Wordmark";
+import Reveal from "./Reveal";
+import SectionHead from "./SectionHead";
+import SiteNav from "./SiteNav";
+import HeroAgents from "./HeroAgents";
+import AgentCards from "./AgentCards";
+import Pipeline from "./Pipeline";
+import DashboardPreview from "./DashboardPreview";
+import PricingCard from "./PricingCard";
+import { AVAILABLE_MODELS } from "@/lib/models";
 
-const AGENTS = [
-  {
-    mark: "PM",
-    name: "The Ideator",
-    role: "Product Manager · Architect",
-    gradient: "from-purple-500 to-fuchsia-500",
-    ring: "ring-purple-500/30",
-    text: "text-purple-300",
-    blurb:
-      "Studies your entire codebase like a founder obsessed with the product — UX, performance, security, accessibility, SEO — then proposes improvements scored across 11 dimensions and ranked by impact.",
-  },
-  {
-    mark: "SWE",
-    name: "The Coder",
-    role: "Senior Full-Stack Engineer",
-    gradient: "from-sky-500 to-blue-600",
-    ring: "ring-sky-500/30",
-    text: "text-sky-300",
-    blurb:
-      "Takes the top-ranked task and builds it on an isolated branch — following your architecture, your conventions, your style. Runs your linter, your types, your tests before calling anything done.",
-  },
-  {
-    mark: "QA",
-    name: "The Tester",
-    role: "QA · Security · Performance",
-    gradient: "from-amber-400 to-orange-500",
-    ring: "ring-amber-500/30",
-    text: "text-amber-300",
-    blurb:
-      "The gatekeeper. Runs every test suite, probes edge cases like a real user, hunts regressions and security holes. Nothing ships until it approves — and it rejects with precise, reproducible bug reports.",
-  },
+/* --------------------------------------------------------------------------
+ * Content. Everything here is true of the product; nothing is aspirational.
+ * ------------------------------------------------------------------------ */
+
+const FACTS = [
+  { value: "3", unit: "agents", note: "one role each, enforced in code" },
+  { value: "1", unit: "gate", note: "only the Tester can ship" },
+  { value: "≈20", unit: "min", note: "from idea to a tested pull request" },
+  { value: "$0", unit: "markup", note: "metered at the model's list price" },
 ];
 
-const PIPELINE = [
-  { label: "Analyze", color: "text-purple-300" },
-  { label: "Build", color: "text-sky-300" },
-  { label: "Test & fix", color: "text-amber-300" },
-  { label: "Safety scan", color: "text-cyan-300" },
-  { label: "Pull request", color: "text-indigo-300" },
-  { label: "Deploy", color: "text-teal-300" },
-  { label: "Verify", color: "text-emerald-300" },
+const CONTROLS = [
+  ["Schedule", "Continuous · Nightly · Manual", "Continuous, 5 min cooldown"],
+  ["Merge mode", "Pull request · Direct merge", "Pull request"],
+  ["Auto-merge", "On · Off", "Off"],
+  ["Idea approval", "On · Off", "Off"],
+  ["Merge approval", "On · Off", "Off"],
+  ["Model", AVAILABLE_MODELS.map((m) => m.label.replace("Claude ", "")).join(" · "), "Per repository"],
+  ["Deploy hook", "Any POST webhook", "None"],
+  ["Health check", "Any URL returning 200", "None"],
 ];
 
-const STATS = [
-  { value: "~20 min", label: "from idea to merged, tested PR" },
-  { value: "100%", label: "of changes tested before they ship" },
-  { value: "24/7", label: "continuous improvement, even while you sleep" },
-  { value: "1 click", label: "to roll back — automatic on failed deploys" },
+const SAFETY = [
+  ["Sandboxed workspace", "Path traversal is rejected. git push, sudo and destructive commands are blocked at the tool layer."],
+  ["Scrubbed environment", "Agent subprocesses run without your API keys or tokens in their environment."],
+  ["Secret scan", "Every diff is scanned before it is pushed. Findings stop the cycle."],
+  ["Encrypted tokens", "Repository tokens are encrypted at rest with AES-256-GCM and scoped per repository."],
+  ["Automatic rollback", "A failed health check reverts the merge and opens an issue with the details."],
+  ["Persistent memory", "Past bugs, failed experiments and wins are kept per repository, so mistakes are not repeated."],
 ];
 
-const FEATURES = [
-  {
-    title: "Watch it work, live",
-    blurb:
-      "A real-time feed of every command your agents run and every file they touch — with colored diffs, as it happens.",
-  },
-  {
-    title: "Every commit, explained",
-    blurb:
-      "Plain-English explanations of what each commit changed and why — no jargon, no digging through diffs.",
-  },
-  {
-    title: "Safety that's code, not vibes",
-    blurb:
-      "Sandboxed agents, secret scanning on every diff, encrypted tokens, and automatic git-revert rollback when a deploy fails its health check.",
-  },
-  {
-    title: "You stay in control",
-    blurb:
-      "Pull requests by default, an optional human-approval gate before anything merges, and pause/resume any time.",
-  },
-  {
-    title: "Know what every cycle costs",
-    blurb:
-      "Live token metering with per-cycle and all-time cost estimates. Runs on your Anthropic API key or your Claude plan.",
-  },
-  {
-    title: "A team that remembers",
-    blurb:
-      "Persistent memory of past bugs, failed experiments, and wins — your agents never repeat a mistake or re-pitch a shipped idea.",
-  },
+const DASHBOARD_NOTES = [
+  ["Every tool call", "Commands with their output and file edits as colored diffs, as they happen."],
+  ["Every commit, explained", "A plain-English account of what changed and why, next to the SHA."],
+  ["Every cent", "Input and output tokens per cycle and all time, with the cost beside them."],
 ];
 
-const STEPS = [
-  {
-    n: "1",
-    title: "Connect a repository",
-    blurb: "Sign in with GitHub, paste a repo-scoped token, pick your schedule. Two minutes, tops.",
-  },
-  {
-    n: "2",
-    title: "Press start",
-    blurb:
-      "Your three-agent team ideates, builds, and battle-tests improvements on isolated branches — arguing with each other until the work is actually good.",
-  },
-  {
-    n: "3",
-    title: "Review the PRs (or don't)",
-    blurb:
-      "Approved changes arrive as clean pull requests with explanations. Auto-merge them, gate them behind your approval — your call.",
-  },
-];
+/* --------------------------------------------------------------------------
+ * Pieces
+ * ------------------------------------------------------------------------ */
+
+function Intro({
+  n,
+  title,
+  heading,
+  children,
+}: {
+  n: string;
+  title: string;
+  heading: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <Reveal>
+      <SectionHead n={n} title={title} />
+      <div className="mt-8 grid gap-6 lg:grid-cols-12">
+        <h2 className="font-serif text-4xl leading-[1.02] text-ink sm:text-5xl lg:col-span-7">{heading}</h2>
+        {children && (
+          <p className="max-w-md text-[15px] leading-relaxed text-ink-2 lg:col-span-4 lg:col-start-9">{children}</p>
+        )}
+      </div>
+    </Reveal>
+  );
+}
+
+/* --------------------------------------------------------------------------
+ * Page
+ * ------------------------------------------------------------------------ */
 
 export default function Landing() {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      {/* ambient background glows */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-fuchsia-600/20 blur-[140px]" />
-      <div className="pointer-events-none absolute top-[38rem] -left-40 h-[400px] w-[500px] rounded-full bg-sky-600/15 blur-[120px]" />
-      <div className="pointer-events-none absolute top-[70rem] -right-40 h-[400px] w-[500px] rounded-full bg-emerald-600/15 blur-[120px]" />
+    <div className="min-h-screen">
+      <SiteNav />
 
-      <div className="relative mx-auto max-w-6xl px-6">
-
-      {/* Nav */}
-      <nav className="relative flex items-center justify-between py-6">
-        <span className="flex items-center gap-2 text-lg font-bold tracking-tight text-white">
-          <span className="h-3 w-3 rounded-sm bg-gradient-to-br from-fuchsia-500 to-sky-500" />
-          Foundry
-        </span>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Link href="/login" className="btn-secondary">
-            Sign in
-          </Link>
-        </div>
-      </nav>
-
-      {/* Hero — fills the first screen */}
-      <section className="relative flex min-h-[calc(100vh-6rem)] flex-col items-center justify-center pb-10 text-center">
-        <p className="mx-auto mb-6 w-fit rounded-full border border-fuchsia-500/40 bg-fuchsia-500/10 px-4 py-1 text-sm text-fuchsia-300">
-          Your codebase, improving itself — right now
-        </p>
-        <h1 className="mx-auto max-w-3xl text-5xl font-extrabold leading-tight text-white sm:text-6xl">
-          Hire a software company
-          <span className="block bg-gradient-to-r from-fuchsia-400 via-sky-400 to-emerald-400 bg-clip-text text-transparent">
-            that never sleeps.
-          </span>
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-300">
-          Three specialized AI agents — a product visionary, a senior engineer, and a ruthless QA
-          lead — continuously find, build, test, and ship improvements to your GitHub repository.
-          You wake up to tested pull requests, not to-do lists.
-        </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/login"
-            className="rounded-xl bg-gradient-to-r from-fuchsia-500 to-sky-500 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition-transform hover:scale-105"
-          >
-            Start free with GitHub →
-          </Link>
-          <a href="#how-it-works" className="btn-secondary px-6 py-3.5 text-base">
-            See how it works
-          </a>
-        </div>
-        <p className="mt-4 text-sm text-gray-400">
-          <span className="font-semibold text-emerald-400">$1 of free credits</span> when you sign
-          up — no card required. Then only pay for what you use, metered to the token.
-        </p>
-
-        {/* pipeline strip */}
-        <div className="mx-auto mt-14 flex max-w-4xl flex-wrap items-center justify-center gap-x-2 gap-y-2 rounded-2xl border border-surface-border bg-surface-raised/70 px-6 py-4 text-sm font-medium backdrop-blur">
-          {PIPELINE.map((step, i) => (
-            <span key={step.label} className="flex items-center gap-2">
-              <span className={step.color}>{step.label}</span>
-              {i < PIPELINE.length - 1 && <span className="text-gray-600">→</span>}
-            </span>
-          ))}
-          <span className="ml-2 flex items-center gap-1.5 text-emerald-300">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            repeat forever
-          </span>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="relative grid grid-cols-2 gap-4 py-10 lg:grid-cols-4">
-        {STATS.map((s) => (
-          <div key={s.label} className="card text-center">
-            <p className="bg-gradient-to-r from-sky-300 to-emerald-300 bg-clip-text text-3xl font-extrabold text-transparent">
-              {s.value}
+      <main className="mx-auto max-w-page px-5 sm:px-8">
+        {/* 01 · Hero */}
+        <section className="grid gap-10 py-14 sm:py-20 lg:grid-cols-12 lg:items-center lg:gap-10 lg:py-24">
+          <div className="lg:col-span-6">
+            <p className="eyebrow mb-7">
+              <span className="text-accent">01</span>&ensp;An autonomous software company
             </p>
-            <p className="mt-1 text-sm text-gray-400">{s.label}</p>
+            <h1 className="font-serif text-[clamp(2.9rem,7.2vw,5.6rem)] leading-[0.95] text-ink">
+              The night shift
+              <br />
+              for your <em>codebase.</em>
+            </h1>
+            <p className="mt-7 max-w-[34rem] text-[16px] leading-relaxed text-ink-2 sm:text-[17px]">
+              Three agents take turns on your GitHub repository. An Ideator proposes, a Coder
+              builds, a Tester checks. Only the Tester can ship. You review pull requests in the
+              morning.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Link href="/login" className="btn-accent btn-lg">
+                Sign in with GitHub
+              </Link>
+              <a href="#workflow" className="btn-secondary btn-lg">
+                See how a cycle runs
+              </a>
+            </div>
+            <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.12em] text-mute">
+              $1 starter credit · no card · metered per token at list price
+            </p>
           </div>
-        ))}
-      </section>
+          <div className="lg:col-span-6">
+            <HeroAgents />
+          </div>
+        </section>
 
-      {/* Agents */}
-      <section className="relative py-16">
-        <h2 className="text-center text-3xl font-bold text-white">Meet your new team</h2>
-        <p className="mx-auto mt-3 max-w-xl text-center text-gray-400">
-          Each agent has one job and can&apos;t do anyone else&apos;s — the same checks and
-          balances as a great human team.
-        </p>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {AGENTS.map((a) => (
-            <div key={a.name} className={`card ring-1 ${a.ring} transition-transform hover:-translate-y-1`}>
+        {/* Facts */}
+        <Reveal>
+          <section
+            className="grid grid-cols-2 overflow-hidden rounded-lg border border-rule lg:grid-cols-4"
+            aria-label="At a glance"
+          >
+            {FACTS.map((f, i) => (
               <div
-                className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${a.gradient} text-xs font-bold tracking-wide text-white`}
+                key={f.unit}
+                className={`px-5 py-5 sm:px-6 ${i % 2 === 1 ? "border-l border-rule" : ""} ${
+                  i >= 2 ? "border-t border-rule lg:border-t-0" : ""
+                } ${i === 2 ? "lg:border-l" : ""}`}
               >
-                {a.mark}
+                <p className="flex items-baseline gap-2 font-serif text-4xl leading-none text-ink tnum">
+                  {f.value}
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-2">{f.unit}</span>
+                </p>
+                <p className="mt-2 text-[12px] text-ink-2">{f.note}</p>
               </div>
-              <h3 className="text-lg font-bold text-white">{a.name}</h3>
-              <p className={`text-xs font-semibold uppercase tracking-wide ${a.text}`}>{a.role}</p>
-              <p className="mt-3 text-sm leading-relaxed text-gray-300">{a.blurb}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </section>
+        </Reveal>
 
-      {/* How it works */}
-      <section id="how-it-works" className="relative py-16">
-        <h2 className="text-center text-3xl font-bold text-white">Up and running in minutes</h2>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {STEPS.map((s) => (
-            <div key={s.n} className="card">
-              <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-sky-500 text-lg font-bold text-white">
-                {s.n}
-              </span>
-              <h3 className="font-semibold text-white">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-300">{s.blurb}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="relative py-16">
-        <h2 className="text-center text-3xl font-bold text-white">
-          Built for trust, tuned for speed
-        </h2>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="card transition-colors hover:border-sky-700">
-              <span className="block h-1 w-8 rounded-full bg-gradient-to-r from-fuchsia-500 to-sky-500" />
-              <h3 className="mt-3 font-semibold text-white">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-300">{f.blurb}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing promise */}
-      <section className="relative py-16">
-        <div className="card mx-auto max-w-3xl border-emerald-500/25 bg-gradient-to-br from-surface-raised to-emerald-950/30 py-10 text-center">
-          <h2 className="mt-3 text-3xl font-bold text-white">
-            Pay for the work.{" "}
-            <span className="bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-transparent">
-              Nothing else.
-            </span>
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-gray-300">
-            You&apos;re charged exactly what your AI team uses — metered to the token, shown live
-            on your dashboard down to the cent. No subscriptions, no seat fees, no markup, no
-            surprises. If your agents don&apos;t work, you don&apos;t pay.
-          </p>
-          <div className="mx-auto mt-6 flex max-w-lg flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-emerald-300">
-            <span>✓ $1 free starter credit</span>
-            <span>✓ Usage-based, to the token</span>
-            <span>✓ Live cost tracking</span>
-            <span>✓ $0 extra fees</span>
+        {/* 02 · Roster */}
+        <section id="roster" className="scroll-mt-20 py-20 sm:py-28">
+          <Intro n="02" title="The roster" heading="Three roles with hard boundaries, like a team that actually works.">
+            Each agent has one job and is prevented, in code, from doing anyone else&apos;s. The
+            agent that built a change is never the agent that signs it off.
+          </Intro>
+          <div className="mt-14">
+            <AgentCards />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Final CTA */}
-      <section className="relative py-20 text-center">
-        <div className="card mx-auto max-w-3xl border-fuchsia-500/30 bg-gradient-to-br from-surface-raised to-fuchsia-950/40 py-12">
-          <h2 className="text-3xl font-bold text-white">
-            Your competitors&apos; code sat still today.
-          </h2>
-          <p className="mx-auto mt-3 max-w-md text-gray-300">
-            Yours doesn&apos;t have to. Connect a repository and watch the first tested pull
-            request arrive within the hour.
+        {/* 03 · Workflow */}
+        <section id="workflow" className="scroll-mt-20 py-20 sm:py-28">
+          <Intro n="03" title="The cycle" heading="One cycle, start to finish.">
+            Six stages, in order. The engine records twelve finer-grained phases underneath, so a
+            cycle can pause, resume after a crash, or wait for your approval at the points you
+            choose. Each stage below lists the phases it contains.
+          </Intro>
+          <Reveal className="mt-14" delay={80}>
+            <Pipeline />
+          </Reveal>
+        </section>
+
+        {/* 04 · Dashboard */}
+        <section id="dashboard" className="scroll-mt-20 py-20 sm:py-28">
+          <Intro n="04" title="The dashboard" heading="Watch the work, not a progress bar.">
+            The dashboard is a ledger of everything the agents did, said and spent, refreshed
+            every few seconds while a cycle runs. Below is a simulated run of the real layout.
+          </Intro>
+          <Reveal className="mt-14" delay={80}>
+            <DashboardPreview />
+          </Reveal>
+          <ol className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-3">
+            {DASHBOARD_NOTES.map(([k, v], i) => (
+              <Reveal as="li" key={k} delay={i * 60} className="border-t border-rule pt-4">
+                <p className="text-[14px] text-ink">{k}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{v}</p>
+              </Reveal>
+            ))}
+          </ol>
+        </section>
+
+        {/* 05 · Controls and safety */}
+        <section className="py-20 sm:py-28">
+          <Intro n="05" title="Controls and safety" heading="You set the terms. The code enforces them.">
+            Pull requests by default, approval gates where you want them, pause at any time. The
+            guard rails are checks the agents cannot talk their way past.
+          </Intro>
+          <div className="mt-14 grid gap-12 lg:grid-cols-12 lg:gap-8">
+            <Reveal className="min-w-0 lg:col-span-7">
+              <p className="eyebrow mb-3">Per-repository settings</p>
+              <div className="panel overflow-x-auto px-5 py-2">
+                <table className="ledger">
+                  <thead>
+                    <tr>
+                      <th>Setting</th>
+                      <th>Options</th>
+                      <th className="pr-0">Default</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CONTROLS.map(([k, opts, def]) => (
+                      <tr key={k}>
+                        <td className="whitespace-nowrap text-ink">{k}</td>
+                        <td className="min-w-[10rem] text-ink-2">{opts}</td>
+                        <td className="pr-0 font-mono text-[12px] text-ink-2 sm:whitespace-nowrap">{def}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Reveal>
+            <Reveal className="min-w-0 lg:col-span-4 lg:col-start-9" delay={80}>
+              <p className="eyebrow mb-3">Enforced in code</p>
+              <dl className="divide-y divide-rule border-t border-rule">
+                {SAFETY.map(([k, v]) => (
+                  <div key={k} className="py-3.5">
+                    <dt className="text-[14px] text-ink">{k}</dt>
+                    <dd className="mt-1 text-[13px] leading-relaxed text-ink-2">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* 06 · Pricing */}
+        <section id="pricing" className="scroll-mt-20 py-20 sm:py-28">
+          <Reveal>
+            <SectionHead n="06" title="Pricing" />
+          </Reveal>
+          <Reveal className="mt-10" delay={60}>
+            <PricingCard />
+          </Reveal>
+        </section>
+
+        {/* Closing */}
+        <section className="border-t border-rule py-24 sm:py-32">
+          <Reveal>
+            <h2 className="max-w-3xl font-serif text-[clamp(2.5rem,6vw,4.75rem)] leading-[0.98] text-ink">
+              Your repository sat still today. It doesn&apos;t have to <em>tomorrow.</em>
+            </h2>
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <Link href="/login" className="btn-accent btn-lg">
+                Sign in with GitHub
+              </Link>
+              <span className="px-2 font-mono text-[11px] uppercase tracking-[0.12em] text-mute">
+                Two minutes to connect a repository
+              </span>
+            </div>
+          </Reveal>
+        </section>
+      </main>
+
+      <footer className="border-t border-rule">
+        <div className="mx-auto flex max-w-page flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <Wordmark small />
+          <p className="text-[12px] text-ink-2">
+            Set in Instrument Serif and Geist. Built on Claude.{" "}
+            <a href="mailto:roninkmehta@gmail.com" className="link">
+              roninkmehta@gmail.com
+            </a>
           </p>
-          <Link
-            href="/login"
-            className="mt-8 inline-block rounded-xl bg-gradient-to-r from-fuchsia-500 to-sky-500 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition-transform hover:scale-105"
-          >
-            Put your AI team to work →
-          </Link>
         </div>
-      </section>
-
-      </div>
-
-      <footer className="relative space-y-2 border-t border-surface-border py-8 text-center text-sm text-gray-500">
-        <p>Foundry — an autonomous software company for your repositories.</p>
-        <p>
-          Questions?{" "}
-          <a
-            href="mailto:roninkmehta@gmail.com"
-            className="text-sky-400 transition-colors hover:text-sky-300"
-          >
-            Contact us at roninkmehta@gmail.com
-          </a>
-        </p>
       </footer>
     </div>
   );

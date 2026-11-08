@@ -7,6 +7,7 @@ import AutoRefresh from "@/components/AutoRefresh";
 import AppHeader from "@/components/AppHeader";
 import Landing from "@/components/Landing";
 import BillingPanel from "@/components/BillingPanel";
+import SectionHead from "@/components/SectionHead";
 import { billingEnabled, getBalanceUsd, CREDIT_PACKS_USD } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
@@ -15,13 +16,6 @@ const ACTIVE_PHASES = [
   "IDEATING", "AWAITING_IDEA_APPROVAL", "CODING", "TESTING", "FIXING", "SAFETY_CHECK",
   "PUSHING", "AWAITING_APPROVAL", "MERGING", "DEPLOYING", "VERIFYING",
 ] as const;
-
-const STATUS_ACCENT: Record<string, string> = {
-  RUNNING: "from-emerald-500/70 to-sky-500/70",
-  PAUSED: "from-gray-600/60 to-gray-700/60",
-  IDLE: "from-gray-600/60 to-gray-700/60",
-  ERROR: "from-red-500/70 to-orange-500/70",
-};
 
 export default async function HomePage() {
   const session = await auth();
@@ -52,95 +46,113 @@ export default async function HomePage() {
   ]);
 
   const stats = [
-    { label: "Repositories", value: repos.length, color: "from-fuchsia-300 to-purple-300" },
-    { label: "Improvements shipped", value: shippedCount, color: "from-emerald-300 to-teal-300" },
-    { label: "Cycles completed", value: completedCycles, color: "from-sky-300 to-indigo-300" },
-    { label: "Working right now", value: activeCycles, color: "from-amber-300 to-orange-300" },
+    { label: "Repositories", value: repos.length },
+    { label: "Improvements shipped", value: shippedCount },
+    { label: "Cycles completed", value: completedCycles },
+    { label: "Working now", value: activeCycles, live: activeCycles > 0 },
   ];
 
+  const firstName = (session.user.name ?? "").split(" ")[0];
+
   return (
-    <main className="mx-auto max-w-7xl px-6 py-8">
+    <main className="mx-auto max-w-page px-6 pb-24 sm:px-10">
       <AutoRefresh intervalMs={8000} />
       <AppHeader user={session.user} />
 
+      <div className="flex flex-wrap items-end justify-between gap-6 py-12 sm:py-16">
+        <div>
+          <p className="eyebrow">
+            {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+          </p>
+          <h1 className="mt-3 font-serif text-5xl leading-none text-ink sm:text-6xl">
+            {firstName ? `${firstName}'s shop floor.` : "The shop floor."}
+          </h1>
+        </div>
+        <AddRepoForm />
+      </div>
+
       {/* Stats */}
-      <section className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="card py-4 text-center">
-            <p className={`bg-gradient-to-r ${s.color} bg-clip-text text-3xl font-extrabold text-transparent`}>
+      <section className="grid grid-cols-2 overflow-hidden rounded-lg border border-rule lg:grid-cols-4" aria-label="Totals">
+        {stats.map((s, i) => (
+          <div
+            key={s.label}
+            className={`px-2 py-5 sm:px-6 ${i % 2 === 1 ? "border-l border-rule" : ""} ${
+              i >= 2 ? "border-t border-rule lg:border-t-0" : ""
+            } ${i === 2 ? "lg:border-l" : ""}`}
+          >
+            <p className="flex items-baseline gap-3 font-serif text-4xl leading-none text-ink tnum">
               {s.value}
+              {s.live && <span className="tag tag-live text-accent" aria-label="live" />}
             </p>
-            <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">{s.label}</p>
+            <p className="eyebrow mt-2">{s.label}</p>
           </div>
         ))}
       </section>
 
-      <div className="mb-8">
-        <BillingPanel
-          balanceUsd={balanceUsd}
-          enabled={billingEnabled()}
-          packs={[...CREDIT_PACKS_USD]}
-        />
+      <div className="mt-10">
+        <BillingPanel balanceUsd={balanceUsd} enabled={billingEnabled()} packs={[...CREDIT_PACKS_USD]} />
       </div>
 
-      <div className="mb-8">
-        <AddRepoForm />
-      </div>
+      <section className="mt-16">
+        <SectionHead n="01" title="Repositories" aside={`${repos.length}`} />
 
-      {repos.length === 0 ? (
-        <div className="card border-fuchsia-500/20 bg-gradient-to-br from-surface-raised to-fuchsia-950/30 py-14 text-center">
-          <p className="text-xl font-semibold text-white">Your AI team is ready to work.</p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-gray-400">
-            Connect a GitHub repository above and the Ideator, Coder, and Tester start improving
-            it within minutes — tested pull requests, delivered around the clock.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {repos.map((repo) => {
-            const activeRun = repo.runs[0];
-            return (
-              <Link
-                key={repo.id}
-                href={`/repos/${repo.id}`}
-                className="card group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-fuchsia-700/50"
-              >
-                <span
-                  className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${STATUS_ACCENT[repo.status] ?? STATUS_ACCENT.IDLE}`}
-                />
-                <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-white">
-                    <span className="text-gray-500">{repo.owner}/</span>
-                    {repo.name}
-                  </h2>
-                  <PhaseBadge phase={repo.status} />
-                </div>
-                <div className="mt-4 space-y-2 text-sm">
-                  {activeRun ? (
-                    <p className="flex items-center gap-2">
-                      <PhaseBadge phase={activeRun.phase} />
-                      <span className="truncate text-gray-300">
-                        {activeRun.idea?.title ?? "Analyzing repository..."}
+        {repos.length === 0 ? (
+          <div className="grid gap-8 py-16 lg:grid-cols-12">
+            <h2 className="font-serif text-4xl leading-[1.02] text-ink lg:col-span-7">
+              Nothing on the floor yet.
+            </h2>
+            <p className="max-w-md text-ink-2 lg:col-span-4 lg:col-start-9">
+              Connect a GitHub repository and the Ideator starts reading it within a minute. The
+              first tested pull request usually lands inside the hour.
+            </p>
+          </div>
+        ) : (
+          <ol>
+            {repos.map((repo) => {
+              const activeRun = repo.runs[0];
+              return (
+                <li key={repo.id} className="border-b border-rule">
+                  <Link
+                    href={`/repos/${repo.id}`}
+                    className="group grid gap-x-8 gap-y-3 py-6 transition-colors hover:bg-paper-2 sm:-mx-4 sm:grid-cols-12 sm:px-4"
+                  >
+                    <div className="sm:col-span-4">
+                      <p className="text-[17px] leading-tight text-ink">
+                        <span className="text-mute">{repo.owner}/</span>
+                        {repo.name}
+                      </p>
+                      <p className="mt-1.5">
+                        <PhaseBadge phase={repo.status} />
+                      </p>
+                    </div>
+                    <div className="min-w-0 sm:col-span-5">
+                      {activeRun ? (
+                        <>
+                          <p className="truncate text-[15px] text-ink">
+                            {activeRun.idea?.title ?? "Reading the repository"}
+                          </p>
+                          <p className="mt-1.5">
+                            <PhaseBadge phase={activeRun.phase} />
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-[13px] text-mute">No cycle in progress</p>
+                      )}
+                    </div>
+                    <div className="flex items-start justify-between font-mono text-[12px] text-ink-2 sm:col-span-3 sm:justify-end sm:gap-8">
+                      <span className="tnum">{repo._count.ideas} shipped</span>
+                      <span>{repo.schedule.toLowerCase()}</span>
+                      <span className="text-mute transition-colors group-hover:text-accent" aria-hidden>
+                        →
                       </span>
-                    </p>
-                  ) : (
-                    <p className="text-gray-500">No cycle in progress</p>
-                  )}
-                  <p className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="text-emerald-400/90">
-                      ✓ {repo._count.ideas} shipped
-                    </span>
-                    <span>{repo.schedule.toLowerCase()} schedule</span>
-                    <span className="ml-auto text-gray-600 transition-colors group-hover:text-fuchsia-400">
-                      open →
-                    </span>
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </section>
     </main>
   );
 }

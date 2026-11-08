@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { logActivity } from "@/lib/logger";
 import { billingEnabled, stripe, creditPurchase, getBalanceUsd } from "@/lib/billing";
+import Wordmark from "@/components/Wordmark";
 
 const ACTIVE_PHASES = [
   "IDEATING", "AWAITING_IDEA_APPROVAL", "CODING", "TESTING", "FIXING", "SAFETY_CHECK",
@@ -27,6 +28,7 @@ async function runPurchaseIntent(userId: string, repoId: string, action: string)
 }
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Credit added" };
 
 export default async function BillingSuccessPage({
   searchParams,
@@ -60,30 +62,44 @@ export default async function BillingSuccessPage({
   const balance = await getBalanceUsd(session.user.id);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
-      {paid ? (
-        <>
-          <h1 className="text-3xl font-bold text-white">
-            ${amountUsd.toFixed(2)} in credits added
+    <main className="mx-auto flex min-h-screen max-w-page flex-col px-6 sm:px-10">
+      <div className="py-6">
+        <Wordmark />
+      </div>
+      <div className="grid flex-1 items-center gap-12 py-16 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <p className="eyebrow">
+            <span className={paid ? "text-ok" : "text-bad"}>{paid ? "Receipt" : "Unconfirmed"}</span>
+          </p>
+          <h1 className="mt-6 font-serif text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.95] text-ink">
+            {paid ? (
+              <>
+                ${amountUsd.toFixed(2)} <em>added.</em>
+              </>
+            ) : (
+              <>Payment not confirmed.</>
+            )}
           </h1>
-          <p className="text-gray-400">
-            Your balance is now{" "}
-            <span className="font-semibold text-emerald-400">${balance.toFixed(2)}</span>. Your AI
-            team only spends it on actual work — metered to the token.
+          <p className="mt-8 max-w-md text-ink-2">
+            {paid
+              ? "Credit is only spent on work, metered to the token. The shop floor is ready."
+              : "This checkout session could not be verified. If you were charged, the credit arrives via webhook shortly."}
           </p>
-        </>
-      ) : (
-        <>
-          <h1 className="text-2xl font-bold text-white">Payment not confirmed</h1>
-          <p className="text-gray-400">
-            We couldn&apos;t verify this checkout session. If you were charged, the credit will
-            arrive via webhook shortly.
-          </p>
-        </>
-      )}
-      <Link href="/" className="btn-primary">
-        Back to dashboard
-      </Link>
+          <Link href="/" className="btn-primary btn-lg mt-10">
+            Back to the shop floor
+          </Link>
+        </div>
+        <dl className="divide-y divide-rule border-t border-rule-2 lg:col-span-4 lg:col-start-9">
+          <div className="grid grid-cols-[8rem_1fr] gap-4 py-3 text-[13px]">
+            <dt className="eyebrow">Balance</dt>
+            <dd className="font-mono text-ink tnum">${balance.toFixed(2)}</dd>
+          </div>
+          <div className="grid grid-cols-[8rem_1fr] gap-4 py-3 text-[13px]">
+            <dt className="eyebrow">Session</dt>
+            <dd className="truncate font-mono text-ink-2">{checkout.id}</dd>
+          </div>
+        </dl>
+      </div>
     </main>
   );
 }

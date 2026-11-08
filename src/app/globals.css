@@ -2,112 +2,319 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme surfaces — dark is the default; .light on <html> flips them. */
-:root {
-  --surface: 11 15 23;
-  --surface-raised: 17 24 39;
-  --surface-border: 31 41 55;
+/* ---------------------------------------------------------------------------
+ * Foundry design tokens.
+ *
+ * Dark is the identity; light is a complete alternate set. Every color in the
+ * UI resolves to one of these channels so nothing is remapped per utility.
+ * Values are RGB channels so Tailwind can apply alpha: `bg-ink/10`.
+ *
+ * Surfaces: paper (page) → paper-2 (section band, wells) → paper-3 (elevated
+ * panels). One accent. Three agent hues. Four semantic states.
+ * ------------------------------------------------------------------------- */
+:root,
+:root.dark {
+  --paper: 16 17 20; /* #101114 */
+  --paper-2: 25 27 33; /* #191B21 */
+  --paper-3: 32 35 43; /* #20232B */
+  --ink: 233 233 231; /* #E9E9E7 */
+  --ink-2: 165 167 175; /* #A5A7AF */
+  --mute: 108 111 122;
+  --rule: 42 45 54; /* hairlines on paper */
+  --rule-2: 56 60 72; /* hairlines on elevated surfaces */
+  --accent: 139 124 255; /* #8B7CFF */
+  --ok: 94 196 128;
+  --warn: 226 178 72;
+  --bad: 232 96 92;
+  --ideator: 139 124 255;
+  --coder: 96 165 250;
+  --tester: 94 196 128;
   color-scheme: dark;
 }
 
 :root.light {
-  --surface: 248 250 252;
-  --surface-raised: 255 255 255;
-  --surface-border: 222 228 237;
+  --paper: 250 250 250;
+  --paper-2: 244 244 245;
+  --paper-3: 255 255 255;
+  --ink: 20 20 23;
+  --ink-2: 96 98 108;
+  --mute: 142 144 152;
+  --rule: 228 228 231;
+  --rule-2: 216 216 220;
+  --accent: 105 90 232;
+  --ok: 32 138 74;
+  --warn: 168 118 18;
+  --bad: 198 52 50;
+  --ideator: 105 90 232;
+  --coder: 37 99 235;
+  --tester: 32 138 74;
   color-scheme: light;
 }
 
-body {
-  @apply bg-surface text-gray-200 antialiased;
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  body {
+    @apply bg-paper font-sans text-[15px] leading-relaxed text-ink;
+    font-feature-settings: "ss01", "cv11", "calt";
+  }
+  ::selection {
+    background: rgb(var(--accent) / 0.3);
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .font-serif {
+    font-feature-settings: normal;
+    letter-spacing: -0.01em;
+  }
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Mono label for section numbers, table heads, metadata. */
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.14em] text-ink-2;
+  }
+
+  /* Numbered section header with a top rule: "02  THE ROSTER". */
+  .section-head {
+    @apply flex items-baseline gap-4 border-t border-rule pt-4;
+  }
+  .section-head .n {
+    @apply font-mono text-[11px] tracking-[0.14em] text-accent;
+  }
+  .section-head .t {
+    @apply font-mono text-[11px] uppercase tracking-[0.14em] text-ink;
+  }
+
+  /* Buttons: one height per size, sans, sentence case. */
+  .btn {
+    @apply inline-flex h-9 select-none items-center justify-center gap-2 rounded-md border px-3.5 text-[13px] font-medium leading-none transition-[background-color,border-color,color,transform] duration-150 active:translate-y-px disabled:pointer-events-none disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply btn border-ink bg-ink text-paper hover:border-accent hover:bg-accent hover:text-white;
+  }
+  .btn-accent {
+    @apply btn border-accent bg-accent text-white hover:border-accent/80 hover:bg-accent/90;
+  }
+  .btn-secondary {
+    @apply btn border-rule-2 bg-paper-2 text-ink hover:border-ink/40 hover:bg-paper-3;
+  }
+  .btn-ghost {
+    @apply btn border-transparent bg-transparent text-ink-2 hover:bg-paper-2 hover:text-ink;
+  }
+  .btn-danger {
+    @apply btn border-bad/50 bg-transparent text-bad hover:bg-bad hover:text-white;
+  }
+  .btn-sm {
+    @apply h-8 px-3 text-[12px];
+  }
+  .btn-lg {
+    @apply h-11 px-5 text-[14px];
+  }
+
+  /* Inputs. */
+  .input {
+    @apply h-9 w-full rounded-md border border-rule-2 bg-paper-2 px-3 text-[14px] text-ink placeholder:text-mute focus:border-accent focus:outline-none;
+  }
+  select.input {
+    @apply cursor-pointer pr-8;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, rgb(var(--ink-2)) 50%),
+      linear-gradient(135deg, rgb(var(--ink-2)) 50%, transparent 50%);
+    background-position:
+      calc(100% - 14px) 50%,
+      calc(100% - 9px) 50%;
+    background-size:
+      5px 5px,
+      5px 5px;
+    background-repeat: no-repeat;
+  }
+  .label {
+    @apply mb-1.5 block text-[12px] font-medium text-ink-2;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply h-3.5 w-3.5 cursor-pointer;
+    accent-color: rgb(var(--accent));
+  }
+
+  /* Elevated panel. */
+  .panel {
+    @apply rounded-lg border border-rule bg-paper-2;
+  }
+  .panel-3 {
+    @apply rounded-lg border border-rule-2 bg-paper-3;
+  }
+
+  /* Inline status tag: dot + mono label. */
+  .tag {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.1em];
+  }
+  .tag::before {
+    content: "";
+    @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full;
+    background: currentColor;
+  }
+  .tag-live::before {
+    animation: breathe 1.6s ease-in-out infinite;
+  }
+
+  /* Ledger tables. */
+  .ledger {
+    @apply w-full text-left text-[13px];
+    font-variant-numeric: tabular-nums;
+  }
+  .ledger th {
+    @apply eyebrow border-b border-rule-2 py-2 pr-4 font-normal;
+  }
+  .ledger td {
+    @apply border-b border-rule py-2.5 pr-4 align-top;
+  }
+  .ledger tr:last-child td {
+    @apply border-b-0;
+  }
+
+  /* Code wells. */
+  .well {
+    @apply rounded-md border border-rule bg-paper font-mono text-[12px] leading-relaxed text-ink-2;
+  }
+
+  .link {
+    @apply underline decoration-rule-2 decoration-1 underline-offset-4 transition-colors hover:text-ink hover:decoration-accent;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Agent hue helpers: set --hue on an element, then use these. */
+  .hue-ideator {
+    --hue: var(--ideator);
+  }
+  .hue-coder {
+    --hue: var(--coder);
+  }
+  .hue-tester {
+    --hue: var(--tester);
+  }
+  .text-hue {
+    color: rgb(var(--hue));
+  }
+  .bg-hue {
+    background-color: rgb(var(--hue));
+  }
+  .border-hue {
+    border-color: rgb(var(--hue));
+  }
 }
 
 /* ---------------------------------------------------------------------------
- * Light-mode remaps. The app is authored dark-first with Tailwind utilities;
- * these attribute-based overrides re-map the palette when .light is active.
+ * Motion. Everything respects prefers-reduced-motion.
  * ------------------------------------------------------------------------- */
-.light body { color: #0f172a; }
-
-.light .text-white,
-.light [class*="text-white"] { color: #0f172a; }
-.light [class*="text-gray-200"] { color: #1e293b; }
-.light [class*="text-gray-300"] { color: #334155; }
-.light [class*="text-gray-400"] { color: #475569; }
-.light [class*="text-gray-500"] { color: #64748b; }
-.light [class*="text-gray-600"] { color: #94a3b8; }
-
-.light [class*="text-purple-3"] { color: #7e22ce; }
-.light [class*="text-fuchsia-3"] { color: #a21caf; }
-.light [class*="text-violet-3"] { color: #6d28d9; }
-.light [class*="text-indigo-3"] { color: #4338ca; }
-.light [class*="text-blue-3"] { color: #1d4ed8; }
-.light [class*="text-sky-3"] { color: #0369a1; }
-.light [class*="text-cyan-3"], .light [class*="text-cyan-4"] { color: #0e7490; }
-.light [class*="text-teal-3"] { color: #0f766e; }
-.light [class*="text-emerald-3"], .light [class*="text-emerald-4"] { color: #047857; }
-.light [class*="text-amber-3"], .light [class*="text-amber-4"] { color: #b45309; }
-.light [class*="text-orange-3"] { color: #c2410c; }
-.light [class*="text-yellow-3"] { color: #a16207; }
-.light [class*="text-red-3"], .light [class*="text-red-4"] { color: #b91c1c; }
-
-.light [class*="bg-purple-900"] { background-color: #f3e8ff; }
-.light [class*="bg-blue-900"] { background-color: #dbeafe; }
-.light [class*="bg-sky-900"] { background-color: #e0f2fe; }
-.light [class*="bg-indigo-900"] { background-color: #e0e7ff; }
-.light [class*="bg-amber-900"] { background-color: #fef3c7; }
-.light [class*="bg-orange-900"] { background-color: #ffedd5; }
-.light [class*="bg-cyan-900"] { background-color: #cffafe; }
-.light [class*="bg-teal-900"] { background-color: #ccfbf1; }
-.light [class*="bg-emerald-900"] { background-color: #d1fae5; }
-.light [class*="bg-yellow-900"] { background-color: #fef9c3; }
-.light [class*="bg-red-900"] { background-color: #fee2e2; }
-.light [class*="bg-gray-800"] { background-color: #e2e8f0; }
-.light [class*="bg-black"] { background-color: #f1f5f9; }
-
-.light [class*="to-fuchsia-950"] { --tw-gradient-to: #faf5ff var(--tw-gradient-to-position); }
-.light [class*="to-emerald-950"] { --tw-gradient-to: #ecfdf5 var(--tw-gradient-to-position); }
-
-.light [class*="bg-gray-700"] { background-color: #cbd5e1; }
-.light [class*="text-gray-700"] { color: #94a3b8; }
-
-/* Component classes compose their colors via @apply, so the utility-based
- * remaps above never match them — override them directly. */
-.light .btn-secondary { color: #1e293b; }
-.light .input { color: #0f172a; }
-.light .input::placeholder { color: #94a3b8; }
-.light .label { color: #475569; }
-
-.card {
-  @apply rounded-xl border border-surface-border bg-surface-raised p-5;
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
-.btn {
-  @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50;
+/* Marching dash for an active connector. */
+@keyframes march {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+.march {
+  stroke-dasharray: 4 4;
+  animation: march 0.9s linear infinite;
 }
 
-.btn-primary {
-  @apply btn bg-gradient-to-r from-fuchsia-500 to-sky-500 text-white shadow-md shadow-fuchsia-500/20 hover:opacity-90;
+/* Caret blink for simulated terminals. */
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 11px;
+  margin-left: 2px;
+  vertical-align: -1px;
+  background: currentColor;
+  animation: blink 1s steps(1) infinite;
 }
 
-.section-heading {
-  @apply mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-400;
+/* Scroll reveal. */
+.reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
 }
 
-.section-dot {
-  @apply inline-block h-2 w-2 rounded-full;
+/* Row entrance inside simulated feeds. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
-.btn-secondary {
-  @apply btn border border-surface-border bg-surface text-gray-300 hover:bg-surface-border;
-}
-
-.btn-danger {
-  @apply btn bg-red-700 text-white hover:bg-red-600;
-}
-
-.input {
-  @apply w-full rounded-lg border border-surface-border bg-surface px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-emerald-600 focus:outline-none;
-}
-
-.label {
-  @apply mb-1 block text-xs font-medium uppercase tracking-wide text-gray-400;
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .tag-live::before,
+  .march,
+  .caret::after,
+  .rise {
+    animation: none;
+  }
 }

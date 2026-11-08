@@ -53,7 +53,7 @@ export default function RepoSettingsForm({
       }),
     });
     setSaving(false);
-    setMessage(res.ok ? "Settings saved." : "Could not save settings.");
+    setMessage(res.ok ? "Saved." : "Could not save settings.");
     if (res.ok) router.refresh();
   }
 
@@ -76,98 +76,119 @@ export default function RepoSettingsForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-12">
       {/* Model */}
-      <div>
-        <label className="label">AI model</label>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {models.map((m) => (
+      <fieldset>
+        <legend className="eyebrow mb-4">Model</legend>
+        <div className="grid border-t border-rule-2 sm:grid-cols-3">
+          {models.map((m, i) => (
             <label
               key={m.id}
-              className="flex cursor-pointer flex-col gap-1 rounded-lg border border-surface-border bg-surface p-3 text-sm has-[:checked]:border-fuchsia-500"
+              className={`flex cursor-pointer flex-col gap-1 border-b border-rule py-4 pr-4 has-[:checked]:text-ink sm:border-b-0 ${
+                i > 0 ? "sm:border-l sm:pl-4" : ""
+              }`}
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-3">
                 <input type="radio" name="model" value={m.id} defaultChecked={repo.model === m.id} />
-                <span className="font-semibold text-white">{m.label}</span>
+                <span className="text-[15px] text-ink">{m.label}</span>
               </span>
-              <span className="text-xs text-gray-400">{m.tagline}</span>
-              <span className="text-xs text-gray-500">{m.pricing}</span>
+              <span className="pl-[1.6rem] text-[13px] text-ink-2">{m.tagline}</span>
+              <span className="pl-[1.6rem] font-mono text-[11px] text-mute">{m.pricing}</span>
             </label>
           ))}
         </div>
-      </div>
+      </fieldset>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
         <div>
-          <label className="label">Schedule</label>
-          <select name="schedule" className="input" defaultValue={repo.schedule}>
-            <option value="CONTINUOUS">Continuous (24/7)</option>
+          <label className="label" htmlFor="schedule">
+            Schedule
+          </label>
+          <select id="schedule" name="schedule" className="input" defaultValue={repo.schedule}>
+            <option value="CONTINUOUS">Continuous</option>
             <option value="NIGHTLY">Nightly</option>
             <option value="MANUAL">Manual only</option>
           </select>
         </div>
         <div>
-          <label className="label">Merge mode</label>
-          <select name="mergeMode" className="input" defaultValue={repo.mergeMode}>
+          <label className="label" htmlFor="mergeMode">
+            Merge mode
+          </label>
+          <select id="mergeMode" name="mergeMode" className="input" defaultValue={repo.mergeMode}>
             <option value="PULL_REQUEST">Pull requests</option>
             <option value="DIRECT_MERGE">Direct merge to default branch</option>
           </select>
         </div>
         <div>
-          <label className="label">Deploy hook URL (optional)</label>
+          <label className="label" htmlFor="deployHookUrl">
+            Deploy hook URL <span className="text-mute">optional</span>
+          </label>
           <input
+            id="deployHookUrl"
             name="deployHookUrl"
             className="input"
             defaultValue={repo.deployHookUrl ?? ""}
-            placeholder="https://api.vercel.com/v1/integrations/deploy/..."
+            placeholder="https://api.vercel.com/v1/integrations/deploy/…"
           />
         </div>
         <div>
-          <label className="label">Health check URL (optional)</label>
+          <label className="label" htmlFor="healthCheckUrl">
+            Health check URL <span className="text-mute">optional</span>
+          </label>
           <input
+            id="healthCheckUrl"
             name="healthCheckUrl"
             className="input"
             defaultValue={repo.healthCheckUrl ?? ""}
-            placeholder="https://myapp.com/api/health"
+            placeholder="https://example.com/api/health"
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="label">Replace GitHub token (leave blank to keep current)</label>
-          <input name="githubToken" type="password" className="input" placeholder="github_pat_..." />
+          <label className="label" htmlFor="githubToken">
+            Replace GitHub token <span className="text-mute">leave blank to keep the current one</span>
+          </label>
+          <input
+            id="githubToken"
+            name="githubToken"
+            type="password"
+            className="input"
+            placeholder="github_pat_…"
+            autoComplete="off"
+          />
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 text-sm text-gray-300">
-        <label className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 text-[13px] text-ink">
+        <label className="flex items-center gap-3">
           <input type="checkbox" name="requireIdeaApproval" defaultChecked={repo.requireIdeaApproval} />
           Ask me to approve each idea before the Coder starts
         </label>
-        <label className="flex items-center gap-2">
+        <label className="flex items-center gap-3">
           <input type="checkbox" name="requireHumanApproval" defaultChecked={repo.requireHumanApproval} />
-          Ask me to approve before anything merges
+          Ask me before anything merges
         </label>
-        <label className="flex items-center gap-2">
+        <label className="flex items-center gap-3">
           <input type="checkbox" name="autoMergePr" defaultChecked={repo.autoMergePr} />
-          Auto-merge approved pull requests
+          Auto-merge pull requests the Tester approves
         </label>
       </div>
 
       <div className="flex items-center gap-4">
         <button type="submit" className="btn-primary" disabled={saving}>
-          {saving ? "Saving..." : "Save settings"}
+          {saving ? "Saving" : "Save settings"}
         </button>
-        {message && <p className="text-sm text-gray-400">{message}</p>}
+        {message && <p className="font-mono text-[12px] text-ink-2">{message}</p>}
       </div>
 
-      {/* Danger zone */}
-      <div className="rounded-lg border border-red-900/50 p-4">
-        <p className="mb-2 text-sm font-semibold text-red-400">Danger zone</p>
-        <p className="mb-3 text-xs text-gray-500">
-          Disconnecting removes this repository and all its Foundry data. Your code on GitHub is
-          not affected.
+      {/* Disconnect */}
+      <div className="border-t border-bad/40 pt-4">
+        <p className="eyebrow !text-bad">Disconnect</p>
+        <p className="mt-2 max-w-prose text-[13px] text-ink-2">
+          Removes this repository and all of its Foundry data: history, analytics, backlog and
+          memory. Your code on GitHub is not affected.
         </p>
-        <button type="button" className="btn-danger" onClick={onDelete} disabled={deleting}>
-          {deleting ? "Disconnecting..." : "Disconnect repository"}
+        <button type="button" className="btn-danger btn-sm mt-4" onClick={onDelete} disabled={deleting}>
+          {deleting ? "Disconnecting" : "Disconnect repository"}
         </button>
       </div>
     </form>

@@ -3,9 +3,11 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import AppHeader from "@/components/AppHeader";
 import ProfileForm from "@/components/ProfileForm";
+import SectionHead from "@/components/SectionHead";
 import { billingEnabled, getBalanceUsd, microsToUsd } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Account" };
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -23,80 +25,74 @@ export default async function SettingsPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-8">
-      <AppHeader user={session.user} />
+    <main className="mx-auto max-w-page px-6 pb-24 sm:px-10">
+      <AppHeader user={session.user} crumbs={[{ label: "account" }]} />
 
-      <h1 className="mb-6 text-2xl font-bold text-white">Account settings</h1>
+      <div className="py-12 sm:py-16">
+        <h1 className="font-serif text-5xl leading-none text-ink sm:text-6xl">Account</h1>
+      </div>
 
-      {/* Profile */}
-      <section className="card mb-6">
-        <h2 className="section-heading">
-          <span className="section-dot bg-fuchsia-400" />
-          Profile
-        </h2>
-        <div className="mb-4 flex items-center gap-4">
-          {user.image && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.image} alt="" className="h-14 w-14 rounded-full ring-2 ring-fuchsia-500/40" />
-          )}
-          <div>
-            <p className="font-medium text-white">{user.name ?? "Unnamed"}</p>
-            <p className="text-sm text-gray-500">{user.email}</p>
-            <p className="text-xs text-gray-600">Signed in with GitHub</p>
+      <div className="grid gap-16 lg:grid-cols-12">
+        {/* Profile */}
+        <section className="lg:col-span-5">
+          <SectionHead n="01" title="Profile" />
+          <div className="mt-6 flex items-center gap-4">
+            {user.image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.image} alt="" className="h-14 w-14 rounded-md border border-rule-2" />
+            )}
+            <div>
+              <p className="text-[17px] text-ink">{user.name ?? "Unnamed"}</p>
+              <p className="font-mono text-[12px] text-ink-2">{user.email}</p>
+              <p className="eyebrow mt-1">Signed in with GitHub</p>
+            </div>
           </div>
-        </div>
-        <ProfileForm initialName={user.name ?? ""} />
-      </section>
+          <div className="mt-8">
+            <ProfileForm initialName={user.name ?? ""} />
+          </div>
+        </section>
 
-      {/* Billing */}
-      <section className="card">
-        <h2 className="section-heading">
-          <span className="section-dot bg-emerald-400" />
-          Billing
-        </h2>
-        <p className="mb-4 text-sm text-gray-400">
-          Balance:{" "}
-          <span className={`font-mono text-lg font-bold ${balanceUsd > 0 ? "text-emerald-400" : "text-red-400"}`}>
+        {/* Billing */}
+        <section className="lg:col-span-6 lg:col-start-7">
+          <SectionHead n="02" title="Billing" aside={billingEnabled() ? undefined : "not configured on this server"} />
+          <p className="eyebrow mt-6">Balance</p>
+          <p className={`mt-1 font-serif text-5xl leading-none tnum ${balanceUsd > 0 ? "text-ink" : "text-bad"}`}>
             ${balanceUsd.toFixed(2)}
-          </span>
-          {!billingEnabled() && (
-            <span className="ml-3 text-xs text-gray-600">(billing not configured on this server)</span>
-          )}
-        </p>
-        {transactions.length === 0 ? (
-          <p className="text-sm text-gray-500">No transactions yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          </p>
+
+          <p className="eyebrow mb-2 mt-10">Transactions</p>
+          {transactions.length === 0 ? (
+            <p className="py-4 text-[13px] text-mute">No transactions yet.</p>
+          ) : (
+            <table className="ledger">
               <thead>
-                <tr className="border-b border-surface-border text-xs uppercase tracking-wide text-gray-500">
-                  <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Description</th>
-                  <th className="py-2 text-right">Amount</th>
+                <tr>
+                  <th className="w-28">Date</th>
+                  <th>Description</th>
+                  <th className="pr-0 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.map((t) => (
-                  <tr key={t.id} className="border-b border-surface-border/50">
-                    <td className="whitespace-nowrap py-2 pr-4 text-gray-500">
+                  <tr key={t.id}>
+                    <td className="whitespace-nowrap font-mono text-[12px] text-mute tnum">
                       {new Date(t.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="py-2 pr-4 text-gray-300">{t.description}</td>
+                    <td className="text-ink-2">{t.description}</td>
                     <td
-                      className={`py-2 text-right font-mono ${
-                        t.amountMicros >= 0 ? "text-emerald-400" : "text-gray-400"
+                      className={`whitespace-nowrap pr-0 text-right font-mono text-[12px] tnum ${
+                        t.amountMicros >= 0 ? "text-ok" : "text-ink"
                       }`}
                     >
-                      {t.amountMicros >= 0 ? "+" : "−"}$
-                      {Math.abs(microsToUsd(t.amountMicros)).toFixed(4)}
+                      {t.amountMicros >= 0 ? "+" : "−"}${Math.abs(microsToUsd(t.amountMicros)).toFixed(4)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

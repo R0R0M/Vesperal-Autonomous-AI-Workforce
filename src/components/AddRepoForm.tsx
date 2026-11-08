@@ -41,62 +41,101 @@ export default function AddRepoForm() {
   if (!open) {
     return (
       <button className="btn-primary" onClick={() => setOpen(true)}>
-        + Connect repository
+        Connect a repository
       </button>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="card space-y-4">
-      <h2 className="text-lg font-semibold text-white">Connect a repository</h2>
-      <div className="grid gap-4 sm:grid-cols-2">
+    <form onSubmit={onSubmit} className="panel p-6 sm:p-8">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-serif text-3xl leading-none text-ink">Connect a repository</h2>
+        <button
+          type="button"
+          className="link font-mono text-[11px] uppercase tracking-[0.16em]"
+          onClick={() => setOpen(false)}
+        >
+          Cancel
+        </button>
+      </div>
+      <p className="mt-3 max-w-prose text-[13px] text-ink-2">
+        Use a fine-grained token scoped to this repository with Contents and Pull requests set to
+        read and write. It is encrypted before it is stored.
+      </p>
+
+      <div className="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-2">
         <div>
-          <label className="label">Repository (owner/name or URL)</label>
-          <input name="url" required className="input" placeholder="acme/website" />
+          <label className="label" htmlFor="url">
+            Repository
+          </label>
+          <input id="url" name="url" required className="input" placeholder="owner/name or URL" />
         </div>
         <div>
-          <label className="label">GitHub token (repo scope)</label>
-          <input name="githubToken" required type="password" className="input" placeholder="ghp_..." />
+          <label className="label" htmlFor="githubToken">
+            GitHub token
+          </label>
+          <input
+            id="githubToken"
+            name="githubToken"
+            required
+            type="password"
+            className="input"
+            placeholder="github_pat_…"
+            autoComplete="off"
+          />
         </div>
         <div>
-          <label className="label">Schedule</label>
-          <select name="schedule" className="input" defaultValue="CONTINUOUS">
-            <option value="CONTINUOUS">Continuous (24/7)</option>
+          <label className="label" htmlFor="schedule">
+            Schedule
+          </label>
+          <select id="schedule" name="schedule" className="input" defaultValue="CONTINUOUS">
+            <option value="CONTINUOUS">Continuous</option>
             <option value="NIGHTLY">Nightly</option>
             <option value="MANUAL">Manual only</option>
           </select>
         </div>
         <div>
-          <label className="label">Merge mode</label>
-          <select name="mergeMode" className="input" defaultValue="PULL_REQUEST">
+          <label className="label" htmlFor="mergeMode">
+            Merge mode
+          </label>
+          <select id="mergeMode" name="mergeMode" className="input" defaultValue="PULL_REQUEST">
             <option value="PULL_REQUEST">Pull requests</option>
             <option value="DIRECT_MERGE">Direct merge to default branch</option>
           </select>
         </div>
         <div>
-          <label className="label">Deploy hook URL (optional)</label>
-          <input name="deployHookUrl" className="input" placeholder="https://api.vercel.com/v1/integrations/deploy/..." />
+          <label className="label" htmlFor="deployHookUrl">
+            Deploy hook URL <span className="text-mute">optional</span>
+          </label>
+          <input
+            id="deployHookUrl"
+            name="deployHookUrl"
+            className="input"
+            placeholder="https://api.vercel.com/v1/integrations/deploy/…"
+          />
         </div>
         <div>
-          <label className="label">Health check URL (optional)</label>
-          <input name="healthCheckUrl" className="input" placeholder="https://myapp.com/api/health" />
+          <label className="label" htmlFor="healthCheckUrl">
+            Health check URL <span className="text-mute">optional</span>
+          </label>
+          <input id="healthCheckUrl" name="healthCheckUrl" className="input" placeholder="https://example.com/api/health" />
         </div>
       </div>
-      <div className="flex flex-wrap gap-6 text-sm text-gray-300">
-        <label className="flex items-center gap-2">
-          <input type="checkbox" name="autoMergePr" defaultChecked /> Auto-merge approved PRs
+
+      <div className="mt-8 flex flex-col gap-3 text-[13px] text-ink">
+        <label className="flex items-center gap-3">
+          <input type="checkbox" name="autoMergePr" defaultChecked /> Auto-merge pull requests the Tester approves
         </label>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" name="requireHumanApproval" /> Require my approval before merging
+        <label className="flex items-center gap-3">
+          <input type="checkbox" name="requireHumanApproval" /> Ask me before anything merges
         </label>
       </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      <div className="flex gap-3">
+
+      {error && <p className="mt-4 text-[13px] text-bad">{error}</p>}
+
+      <div className="mt-8">
         <button type="submit" disabled={saving} className="btn-primary">
-          {saving ? "Validating..." : "Connect"}
-        </button>
-        <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>
-          Cancel
+          {saving ? "Validating" : "Connect"}
         </button>
       </div>
     </form>

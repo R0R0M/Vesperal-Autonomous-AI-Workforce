@@ -17,6 +17,16 @@ interface LogRow {
   createdAt: Date;
 }
 
+function Head({ children, aside }: { children: React.ReactNode; aside?: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between border-t border-rule-2 pt-3">
+      <span className="eyebrow !text-ink">{children}</span>
+      {aside && <span className="eyebrow">{aside}</span>}
+    </div>
+  );
+}
+
+/** Right-hand ledger: what the cycle is, what it cost, what it committed, what the system logged. */
 export default function ChangesShelf({
   ideaTitle,
   commits,
@@ -42,137 +52,115 @@ export default function ChangesShelf({
   const totalCost = estimateCostUsd(modelName, totalInputTokens, totalOutputTokens);
 
   return (
-    <aside className="space-y-4">
-      <div className="card">
-        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-400">
-          Changes this cycle
-        </h2>
-        {ideaTitle ? (
-          <p className="text-sm font-medium text-white">{ideaTitle}</p>
-        ) : (
-          <p className="text-sm text-gray-500">No cycle yet.</p>
-        )}
+    <aside className="space-y-10">
+      <div>
+        <Head>This cycle</Head>
+        <p className={`mt-3 text-[15px] leading-snug ${ideaTitle ? "text-ink" : "text-mute"}`}>
+          {ideaTitle ?? "No cycle yet."}
+        </p>
       </div>
 
-      {/* Token usage */}
-      <div className="card">
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-          Token usage
-        </h3>
-        <div className="space-y-3 font-mono text-sm">
-          <div>
-            <p className="mb-1 text-[10px] uppercase tracking-wide text-gray-500">This cycle</p>
-            {inputTokens + outputTokens === 0 ? (
-              <p className="text-xs text-gray-500">Nothing spent yet.</p>
-            ) : (
-              <>
-                <p className="flex justify-between">
-                  <span className="text-gray-400">tokens</span>
-                  <span className="text-gray-200">
-                    {formatTokens(inputTokens)} in / {formatTokens(outputTokens)} out
-                  </span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="text-gray-400">≈ cost</span>
-                  <span className="text-emerald-400">${cycleCost.toFixed(4)}</span>
-                </p>
-              </>
-            )}
-          </div>
-          <div className="border-t border-surface-border pt-2">
-            <p className="mb-1 text-[10px] uppercase tracking-wide text-gray-500">All time</p>
-            <p className="flex justify-between">
-              <span className="text-gray-400">tokens</span>
-              <span className="text-gray-200">
-                {formatTokens(totalInputTokens)} in / {formatTokens(totalOutputTokens)} out
-              </span>
-            </p>
-            <p className="flex justify-between">
-              <span className="text-gray-400">≈ cost</span>
-              <span className="text-emerald-400">${totalCost.toFixed(4)}</span>
-            </p>
-          </div>
-          <p className="text-right text-[10px] text-gray-600">{modelName}</p>
-        </div>
+      <div>
+        <Head aside={modelName}>Meter</Head>
+        <table className="ledger mt-1">
+          <tbody className="font-mono text-[12px]">
+            <tr>
+              <td className="text-ink-2">Cycle tokens</td>
+              <td className="text-right text-ink tnum">
+                {inputTokens + outputTokens === 0
+                  ? "—"
+                  : `${formatTokens(inputTokens)} in · ${formatTokens(outputTokens)} out`}
+              </td>
+            </tr>
+            <tr>
+              <td className="text-ink-2">Cycle cost</td>
+              <td className="text-right text-ink tnum">
+                {inputTokens + outputTokens === 0 ? "—" : `$${cycleCost.toFixed(4)}`}
+              </td>
+            </tr>
+            <tr>
+              <td className="text-ink-2">All-time tokens</td>
+              <td className="text-right text-ink tnum">
+                {formatTokens(totalInputTokens)} in · {formatTokens(totalOutputTokens)} out
+              </td>
+            </tr>
+            <tr>
+              <td className="text-ink-2">All-time cost</td>
+              <td className="text-right text-ink tnum">${totalCost.toFixed(4)}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      {/* Commits with explanations */}
-      <div className="card max-h-[32rem] space-y-3 overflow-y-auto">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400">Commits</h3>
-        {coderBusy && (
-          <div className="rounded-lg border border-dashed border-surface-border bg-surface p-3">
-            <p className="flex items-center gap-2 text-xs text-gray-400">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
-              Coder is working — the next commit and its explanation will appear here.
-            </p>
-          </div>
-        )}
-        {commits.length === 0 && !coderBusy && (
-          <p className="text-sm text-gray-500">No commits yet this cycle.</p>
-        )}
-        {commits.map((c, i) => (
-          <div
-            key={c.sha ?? i}
-            className={`rounded-lg border bg-surface p-3 ${
-              c.isCurrentCycle ? "border-blue-800/70" : "border-surface-border/60"
-            }`}
-          >
-            {!c.isCurrentCycle && c.taskTitle && (
-              <p className="mb-1 truncate text-[10px] text-gray-500">{c.taskTitle}</p>
-            )}
-            <p className="break-words font-mono text-xs text-white">
-              {c.sha && <span className="mr-2 text-amber-300">{c.sha.slice(0, 7)}</span>}
-              {c.message}
-            </p>
-            <p className="mt-1.5 text-xs leading-relaxed text-gray-300">{c.overall}</p>
-            {c.files.length > 0 && (
-              <details className="mt-1.5">
-                <summary className="cursor-pointer text-[11px] text-gray-500 hover:text-gray-300">
-                  {c.files.length} file{c.files.length === 1 ? "" : "s"} — details
-                </summary>
-                <div className="mt-1.5 space-y-1.5">
-                  {c.files.map((f) => (
-                    <div key={f.file} className="text-[11px]">
-                      <p className="break-all font-mono text-gray-300">{f.file}</p>
-                      <p className="text-gray-400">{f.whatChanged} {f.purpose}</p>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            )}
-            <p className="mt-1 text-right text-[10px] text-gray-600">
-              {new Date(c.createdAt).toLocaleTimeString()}
-            </p>
-          </div>
-        ))}
+      <div>
+        <Head aside={commits.length > 0 ? `${commits.length}` : undefined}>Commits</Head>
+        <ol className="max-h-[32rem] divide-y divide-rule overflow-y-auto">
+          {coderBusy && (
+            <li className="py-3">
+              <p className="tag tag-live text-accent">Coder working</p>
+              <p className="mt-1 text-[12px] text-mute">The next commit and its explanation land here.</p>
+            </li>
+          )}
+          {commits.length === 0 && !coderBusy && (
+            <li className="py-3 text-[13px] text-mute">No commits yet.</li>
+          )}
+          {commits.map((c, i) => (
+            <li key={c.sha ?? i} className={`py-4 ${c.isCurrentCycle ? "" : "opacity-80"}`}>
+              {!c.isCurrentCycle && c.taskTitle && (
+                <p className="mb-1 truncate text-[11px] text-mute">{c.taskTitle}</p>
+              )}
+              <p className="break-words font-mono text-[12px] text-ink">
+                {c.sha && <span className="mr-2 text-accent">{c.sha.slice(0, 7)}</span>}
+                {c.message}
+              </p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">{c.overall}</p>
+              {c.files.length > 0 && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-[0.12em] text-mute hover:text-ink">
+                    {c.files.length} file{c.files.length === 1 ? "" : "s"}
+                  </summary>
+                  <ul className="mt-2 space-y-2 border-l border-rule pl-3">
+                    {c.files.map((f) => (
+                      <li key={f.file} className="text-[12px]">
+                        <p className="break-all font-mono text-ink">{f.file}</p>
+                        <p className="text-ink-2">
+                          {f.whatChanged} {f.purpose}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              <time
+                className="mt-2 block font-mono text-[10px] text-mute tnum"
+                dateTime={new Date(c.createdAt).toISOString()}
+              >
+                {new Date(c.createdAt).toLocaleTimeString([], { hour12: false })}
+              </time>
+            </li>
+          ))}
+        </ol>
       </div>
 
-      {/* Activity log */}
-      <div className="card">
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-          Activity log
-        </h3>
-        <div className="max-h-80 space-y-1 overflow-y-auto font-mono text-[11px]">
+      <div>
+        <Head>System log</Head>
+        <ol className="mt-2 max-h-80 space-y-1 overflow-y-auto font-mono text-[11px]">
           {logs.map((log) => (
-            <p key={log.id} className="flex gap-2">
-              <span className="whitespace-nowrap text-gray-600">
-                {new Date(log.createdAt).toLocaleTimeString()}
-              </span>
+            <li key={log.id} className="grid grid-cols-[4.5rem_1fr] gap-2">
+              <time className="whitespace-nowrap text-mute tnum" dateTime={new Date(log.createdAt).toISOString()}>
+                {new Date(log.createdAt).toLocaleTimeString([], { hour12: false })}
+              </time>
               <span
                 className={
-                  log.level === "error"
-                    ? "text-red-400"
-                    : log.level === "warn"
-                      ? "text-amber-400"
-                      : "text-gray-300"
+                  log.level === "error" ? "text-bad" : log.level === "warn" ? "text-warn" : "text-ink-2"
                 }
               >
                 {log.message}
               </span>
-            </p>
+            </li>
           ))}
-          {logs.length === 0 && <p className="text-gray-500">No activity yet.</p>}
-        </div>
+          {logs.length === 0 && <li className="text-mute">Nothing logged yet.</li>}
+        </ol>
       </div>
     </aside>
   );

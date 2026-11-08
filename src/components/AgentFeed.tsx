@@ -1,4 +1,5 @@
 import PhaseBadge from "./PhaseBadge";
+import Prose from "./Prose";
 
 interface Message {
   id: string;
@@ -9,56 +10,58 @@ interface Message {
   createdAt: Date;
 }
 
-const AGENT_COLORS: Record<string, string> = {
-  IDEATOR: "text-purple-300",
-  CODER: "text-blue-300",
-  TESTER: "text-amber-300",
-  SYSTEM: "text-gray-400",
+const AGENT_TONE: Record<string, string> = {
+  IDEATOR: "text-ideator",
+  CODER: "text-coder",
+  TESTER: "text-tester",
+  SYSTEM: "text-ink-2",
 };
 
-const AGENT_BORDERS: Record<string, string> = {
-  IDEATOR: "border-l-purple-500/70",
-  CODER: "border-l-sky-500/70",
-  TESTER: "border-l-amber-500/70",
-  SYSTEM: "border-l-gray-600",
+const TYPE_LABEL: Record<string, string> = {
+  ANALYSIS: "analysis",
+  TASK_BRIEF: "brief",
+  IMPLEMENTATION_REPORT: "report",
+  CHANGE_SUMMARY: "commit",
+  VERDICT: "verdict",
 };
 
 function ContentView({ type, content }: { type: string; content: Record<string, unknown> }) {
   switch (type) {
     case "ANALYSIS":
-      return <p className="text-sm text-gray-300">{String(content.summary ?? "")}</p>;
+      return <p className="text-[13px] leading-relaxed text-ink-2">{String(content.summary ?? "")}</p>;
     case "TASK_BRIEF":
       return (
-        <div className="space-y-1 text-sm text-gray-300">
-          <p className="font-semibold text-white">{String(content.title ?? "")}</p>
-          <p>{String(content.description ?? "")}</p>
+        <div className="space-y-2 text-[13px] leading-relaxed">
+          <p className="text-[15px] text-ink">{String(content.title ?? "")}</p>
+          <p className="text-ink-2">{String(content.description ?? "")}</p>
           {Array.isArray(content.acceptanceCriteria) && (
-            <ul className="list-inside list-disc text-gray-400">
+            <ol className="mt-2 space-y-1 border-l border-rule pl-3 text-ink-2">
               {(content.acceptanceCriteria as string[]).slice(0, 6).map((c, i) => (
-                <li key={i}>{c}</li>
+                <li key={i} className="grid grid-cols-[1.5rem_1fr]">
+                  <span className="font-mono text-[11px] text-mute">{String(i + 1).padStart(2, "0")}</span>
+                  <span>{c}</span>
+                </li>
               ))}
-            </ul>
+            </ol>
           )}
         </div>
       );
     case "IMPLEMENTATION_REPORT":
-      return (
-        <p className="whitespace-pre-wrap text-sm text-gray-300">
-          {String(content.report ?? "").slice(0, 1500)}
-        </p>
-      );
+      return <Prose text={String(content.report ?? "").slice(0, 1500)} />;
     case "CHANGE_SUMMARY": {
       const changes = Array.isArray(content.changes)
         ? (content.changes as { file: string; whatChanged: string }[])
         : [];
       return (
-        <div className="space-y-1 text-sm text-gray-300">
-          <p>{String(content.overall ?? "")}</p>
+        <div className="space-y-2 text-[13px] leading-relaxed">
+          <p className="text-ink-2">{String(content.overall ?? "")}</p>
           {changes.length > 0 && (
-            <ul className="list-inside list-disc text-gray-400">
+            <ul className="space-y-1 border-l border-rule pl-3">
               {changes.slice(0, 8).map((c, i) => (
-                <li key={i}>
-                  <span className="font-mono text-gray-300">{c.file}</span> — {c.whatChanged}
+                <li key={i} className="text-ink-2">
+                  <span className="font-mono text-[12px] text-ink">{c.file}</span>
+                  <span className="text-mute"> · </span>
+                  {c.whatChanged}
                 </li>
               ))}
             </ul>
@@ -70,14 +73,16 @@ function ContentView({ type, content }: { type: string; content: Record<string, 
       const approved = Boolean(content.approved);
       const bugs = Array.isArray(content.bugs) ? (content.bugs as { severity: string; title: string }[]) : [];
       return (
-        <div className="space-y-1 text-sm">
+        <div className="space-y-2 text-[13px] leading-relaxed">
           <PhaseBadge phase={approved ? "COMPLETED" : "FAILED"} />
-          <p className="text-gray-300">{String(content.summary ?? "")}</p>
+          <p className="text-ink-2">{String(content.summary ?? "")}</p>
           {bugs.length > 0 && (
-            <ul className="list-inside list-disc text-red-300">
+            <ul className="space-y-1 border-l border-bad pl-3">
               {bugs.map((b, i) => (
-                <li key={i}>
-                  [{b.severity}] {b.title}
+                <li key={i} className="text-ink">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-bad">{b.severity}</span>
+                  <span className="text-mute"> · </span>
+                  {b.title}
                 </li>
               ))}
             </ul>
@@ -87,36 +92,33 @@ function ContentView({ type, content }: { type: string; content: Record<string, 
     }
     default:
       return (
-        <pre className="max-h-40 overflow-auto text-xs text-gray-400">
-          {JSON.stringify(content, null, 2)}
-        </pre>
+        <pre className="well max-h-40 overflow-auto p-3">{JSON.stringify(content, null, 2)}</pre>
       );
   }
 }
 
+/** The agents' correspondence, newest first, rendered as a correspondence log. */
 export default function AgentFeed({ messages }: { messages: Message[] }) {
   if (messages.length === 0) {
-    return <p className="text-sm text-gray-500">No agent activity yet.</p>;
+    return <p className="py-6 text-[13px] text-mute">No correspondence yet.</p>;
   }
   return (
-    <div className="space-y-4">
+    <ol className="divide-y divide-rule">
       {messages.map((m) => (
-        <div
-          key={m.id}
-          className={`rounded-lg border border-surface-border border-l-2 bg-surface p-4 ${AGENT_BORDERS[m.fromAgent] ?? "border-l-gray-600"}`}
-        >
-          <div className="mb-2 flex items-center gap-2 text-xs">
-            <span className={`font-bold ${AGENT_COLORS[m.fromAgent] ?? ""}`}>{m.fromAgent}</span>
-            <span className="text-gray-600">→</span>
-            <span className={`font-bold ${AGENT_COLORS[m.toAgent] ?? ""}`}>{m.toAgent}</span>
-            <span className="rounded bg-surface-border px-1.5 py-0.5 text-gray-400">{m.type}</span>
-            <span className="ml-auto text-gray-500">
+        <li key={m.id} className="py-5">
+          <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-[11px] uppercase tracking-[0.12em]">
+            <span className={AGENT_TONE[m.fromAgent] ?? "text-ink-2"}>{m.fromAgent.toLowerCase()}</span>
+            <span className="text-mute">to</span>
+            <span className={AGENT_TONE[m.toAgent] ?? "text-ink-2"}>{m.toAgent.toLowerCase()}</span>
+            <span className="text-mute">·</span>
+            <span className="text-ink-2">{TYPE_LABEL[m.type] ?? m.type.toLowerCase()}</span>
+            <time className="ml-auto normal-case tracking-normal text-mute" dateTime={new Date(m.createdAt).toISOString()}>
               {new Date(m.createdAt).toLocaleString()}
-            </span>
+            </time>
           </div>
           <ContentView type={m.type} content={(m.content ?? {}) as Record<string, unknown>} />
-        </div>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }

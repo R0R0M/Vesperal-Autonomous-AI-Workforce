@@ -30,11 +30,7 @@ export default function ControlButtons({
 
   async function act(action: string) {
     // Known-empty balance: skip the round trip and ask for billing directly.
-    if (
-      billingActive &&
-      !hasCredit &&
-      (action === "start" || action === "run-once")
-    ) {
+    if (billingActive && !hasCredit && (action === "start" || action === "run-once")) {
       setBillingIntent(action);
       return;
     }
@@ -71,54 +67,59 @@ export default function ControlButtons({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {status !== "RUNNING" ? (
-        <button className="btn-primary" disabled={!!pending} onClick={() => act("start")}>
-          {pending === "start" ? "Starting..." : "Start autonomous mode"}
-        </button>
-      ) : (
-        <button className="btn-secondary" disabled={!!pending} onClick={() => act("pause")}>
-          {pending === "pause" ? "Pausing..." : "Pause"}
-        </button>
-      )}
-      {!hasActiveRun && (
-        <button className="btn-secondary" disabled={!!pending} onClick={() => act("run-once")}>
-          {pending === "run-once" ? "Queuing..." : "Run one cycle"}
-        </button>
+      {awaitingIdeaApproval && (
+        <>
+          <button className="btn-primary btn-sm" disabled={!!pending} onClick={() => act("approve-idea")}>
+            {pending === "approve-idea" ? "Approving" : "Approve idea"}
+          </button>
+          <button className="btn-danger btn-sm" disabled={!!pending} onClick={() => act("reject-idea")}>
+            {pending === "reject-idea" ? "Rejecting" : "Reject idea"}
+          </button>
+        </>
       )}
       {awaitingApproval && (
         <>
-          <button className="btn-primary" disabled={!!pending} onClick={() => act("approve")}>
-            {pending === "approve" ? "Approving..." : "Approve & merge"}
+          <button className="btn-primary btn-sm" disabled={!!pending} onClick={() => act("approve")}>
+            {pending === "approve" ? "Approving" : "Approve and merge"}
           </button>
-          <button className="btn-danger" disabled={!!pending} onClick={() => act("reject")}>
-            {pending === "reject" ? "Rejecting..." : "Reject"}
+          <button className="btn-danger btn-sm" disabled={!!pending} onClick={() => act("reject")}>
+            {pending === "reject" ? "Rejecting" : "Reject"}
           </button>
         </>
       )}
-      {awaitingIdeaApproval && (
-        <>
-          <button className="btn-primary" disabled={!!pending} onClick={() => act("approve-idea")}>
-            {pending === "approve-idea" ? "Approving..." : "Approve idea"}
-          </button>
-          <button className="btn-danger" disabled={!!pending} onClick={() => act("reject-idea")}>
-            {pending === "reject-idea" ? "Rejecting..." : "Reject idea"}
-          </button>
-        </>
+      {status !== "RUNNING" ? (
+        <button className="btn-primary btn-sm" disabled={!!pending} onClick={() => act("start")}>
+          {pending === "start" ? "Starting" : "Start autonomous mode"}
+        </button>
+      ) : (
+        <button className="btn-secondary btn-sm" disabled={!!pending} onClick={() => act("pause")}>
+          {pending === "pause" ? "Pausing" : "Pause"}
+        </button>
+      )}
+      {!hasActiveRun && (
+        <button className="btn-secondary btn-sm" disabled={!!pending} onClick={() => act("run-once")}>
+          {pending === "run-once" ? "Queuing" : "Run one cycle"}
+        </button>
       )}
 
       {/* Billing prompt: shown when starting work with an empty balance. */}
       {billingIntent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6">
-          <div className="card w-full max-w-md space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Add credits to run your AI team</h3>
-              <p className="mt-1 text-sm text-gray-400">
-                Your balance is empty. Pick a credit pack — you&apos;ll check out securely with
-                Stripe, and your cycle starts automatically the moment payment completes. Credits
-                are only spent on actual work, metered to the token.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-paper/70 p-6 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="credits-title"
+        >
+          <div className="panel-3 w-full max-w-md p-6">
+            <p className="eyebrow">Balance empty</p>
+            <h3 id="credits-title" className="mt-3 font-serif text-3xl leading-tight text-ink">
+              Add credit to start the shift.
+            </h3>
+            <p className="mt-3 text-[13px] leading-relaxed text-ink-2">
+              Pick an amount. You check out with Stripe and the cycle starts the moment payment
+              completes. Credit is only spent on work, metered to the token.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
               {packs.map((amount) => (
                 <button
                   key={amount}
@@ -126,13 +127,13 @@ export default function ControlButtons({
                   disabled={buying !== null}
                   className="btn-primary"
                 >
-                  {buying === amount ? "Redirecting..." : `$${amount}`}
+                  {buying === amount ? "Redirecting" : `$${amount}`}
                 </button>
               ))}
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="mt-3 text-[13px] text-bad">{error}</p>}
             <button
-              className="btn-secondary"
+              className="link mt-6 font-mono text-[11px] uppercase tracking-[0.16em]"
               onClick={() => {
                 setBillingIntent(null);
                 setError(null);

@@ -7,10 +7,10 @@ interface ToolEventRow {
   createdAt: Date;
 }
 
-const AGENT_COLORS: Record<string, string> = {
-  CODER: "text-blue-300",
-  TESTER: "text-amber-300",
-  IDEATOR: "text-purple-300",
+const AGENT_TONE: Record<string, string> = {
+  CODER: "text-coder",
+  TESTER: "text-tester",
+  IDEATOR: "text-ideator",
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -23,18 +23,18 @@ const TOOL_LABELS: Record<string, string> = {
 
 function DiffView({ text }: { text: string }) {
   return (
-    <pre className="mt-2 max-h-96 overflow-auto rounded bg-black/40 p-3 text-[11px] leading-relaxed">
+    <pre className="well mt-2 max-h-96 overflow-auto p-3 text-[11px]">
       {text.split("\n").map((line, i) => {
         const cls = line.startsWith("+")
-          ? "text-emerald-400"
+          ? "text-ok"
           : line.startsWith("-")
-            ? "text-red-400"
+            ? "text-bad"
             : line.startsWith("@@")
-              ? "text-cyan-400"
-              : "text-gray-400";
+              ? "text-coder"
+              : "text-ink-2";
         return (
           <div key={i} className={cls}>
-            {line || " "}
+            {line || " "}
           </div>
         );
       })}
@@ -43,64 +43,54 @@ function DiffView({ text }: { text: string }) {
 }
 
 /**
- * Live feed of every tool action the agents take: commands with their output,
- * and file edits rendered as colored diffs. The page's AutoRefresh keeps it
- * near-real-time.
+ * Every tool action the agents take, newest first: commands with their
+ * output, file edits as colored diffs. AutoRefresh keeps it near-live.
  */
 export default function LiveActivityFeed({ events }: { events: ToolEventRow[] }) {
   if (events.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
-        No tool activity yet — this fills up live while the Coder and Tester work.
+      <p className="py-6 text-[13px] text-mute">
+        Nothing yet. This fills in as the Coder and Tester work.
       </p>
     );
   }
   return (
-    <div className="max-h-[36rem] space-y-1.5 overflow-y-auto font-mono text-xs">
+    <ol className="max-h-[36rem] divide-y divide-rule overflow-y-auto font-mono text-[12px]">
       {events.map((e, idx) => {
         const isDiff = e.tool === "write_file";
         const isUsage = e.tool === "usage";
         const hasDetail = !!e.detail && e.detail !== "(no output)";
         return (
-          <div key={e.id} className="rounded border border-surface-border/60 bg-surface px-3 py-2">
-            <div className="flex items-baseline gap-2">
-              <span className="text-gray-600">{new Date(e.createdAt).toLocaleTimeString()}</span>
-              <span className={`font-bold ${AGENT_COLORS[e.agent] ?? "text-gray-400"}`}>
-                {e.agent}
+          <li key={e.id} className="py-2">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:grid sm:grid-cols-[4.5rem_4rem_3rem_1fr]">
+              <time className="text-mute tnum" dateTime={new Date(e.createdAt).toISOString()}>
+                {new Date(e.createdAt).toLocaleTimeString([], { hour12: false })}
+              </time>
+              <span className={`uppercase tracking-[0.12em] text-[10px] ${AGENT_TONE[e.agent] ?? "text-ink-2"}`}>
+                {e.agent.toLowerCase()}
               </span>
-              <span className="rounded bg-surface-border/60 px-1.5 py-px text-[10px] uppercase tracking-wide text-gray-500">
+              <span className="text-[10px] uppercase tracking-[0.12em] text-mute">
                 {TOOL_LABELS[e.tool] ?? e.tool}
               </span>
-              <span
-                className={`break-all ${
-                  isDiff ? "text-white" : isUsage ? "text-violet-300" : "text-gray-300"
-                }`}
-              >
+              <span className={`w-full break-all sm:w-auto ${isDiff ? "text-ink" : isUsage ? "text-mute" : "text-ink-2"}`}>
                 {e.summary}
               </span>
             </div>
-            {hasDetail &&
-              (isDiff ? (
-                // Newest file edit is expanded; older ones collapse.
-                <details open={idx === 0}>
-                  <summary className="cursor-pointer text-gray-500 hover:text-gray-300">
-                    diff
-                  </summary>
+            {hasDetail && (
+              <details open={isDiff && idx === 0} className="sm:pl-[13.5rem]">
+                <summary className="cursor-pointer text-[10px] uppercase tracking-[0.12em] text-mute hover:text-ink">
+                  {isDiff ? "diff" : "output"}
+                </summary>
+                {isDiff ? (
                   <DiffView text={e.detail!} />
-                </details>
-              ) : (
-                <details>
-                  <summary className="cursor-pointer text-gray-500 hover:text-gray-300">
-                    output
-                  </summary>
-                  <pre className="mt-2 max-h-60 overflow-auto rounded bg-black/40 p-3 text-[11px] text-gray-400">
-                    {e.detail}
-                  </pre>
-                </details>
-              ))}
-          </div>
+                ) : (
+                  <pre className="well mt-2 max-h-60 overflow-auto p-3 text-[11px]">{e.detail}</pre>
+                )}
+              </details>
+            )}
+          </li>
         );
       })}
-    </div>
+    </ol>
   );
 }

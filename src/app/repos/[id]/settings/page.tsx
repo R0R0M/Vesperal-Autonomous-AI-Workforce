@@ -1,14 +1,15 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import AppHeader from "@/components/AppHeader";
 import PhaseBadge from "@/components/PhaseBadge";
 import RepoSettingsForm from "@/components/RepoSettingsForm";
+import SectionHead from "@/components/SectionHead";
 import { AVAILABLE_MODELS } from "@/lib/models";
 import { estimateCostUsd, formatTokens } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Repository settings" };
 
 function minutesBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / 60_000);
@@ -66,100 +67,81 @@ export default async function RepoSettingsPage({
         )
       : null;
 
-  const tiles = [
-    { label: "Improvements shipped", value: String(shipped), color: "from-emerald-300 to-teal-300" },
-    {
-      label: "Success rate",
-      value: successRate === null ? "—" : `${successRate}%`,
-      color: "from-sky-300 to-indigo-300",
-    },
-    {
-      label: "Avg cycle time",
-      value: avgMinutes === null ? "—" : `${avgMinutes} min`,
-      color: "from-fuchsia-300 to-purple-300",
-    },
-    { label: "Pull requests opened", value: String(prsOpened), color: "from-violet-300 to-fuchsia-300" },
-    { label: "Bugs caught by Tester", value: String(bugsTotal), color: "from-amber-300 to-orange-300" },
-    { label: "Bugs fixed", value: String(bugsFixed), color: "from-emerald-300 to-teal-300" },
-    {
-      label: "Tokens used",
-      value: `${formatTokens(totalIn)} / ${formatTokens(totalOut)}`,
-      color: "from-violet-300 to-sky-300",
-    },
-    { label: "Estimated spend", value: `$${totalCost.toFixed(2)}`, color: "from-emerald-300 to-sky-300" },
+  const tiles: [string, string][] = [
+    ["Improvements shipped", String(shipped)],
+    ["Success rate", successRate === null ? "—" : `${successRate}%`],
+    ["Average cycle", avgMinutes === null ? "—" : `${avgMinutes} min`],
+    ["Pull requests", String(prsOpened)],
+    ["Bugs caught", String(bugsTotal)],
+    ["Bugs fixed", String(bugsFixed)],
+    ["Tokens in / out", `${formatTokens(totalIn)} / ${formatTokens(totalOut)}`],
+    ["Estimated spend", `$${totalCost.toFixed(2)}`],
   ];
 
-  return (
-    <main className="mx-auto max-w-5xl px-6 py-8">
-      <AppHeader user={session.user} />
+  const fullName = `${repo.owner}/${repo.name}`;
 
-      <div className="mb-6 space-y-3">
-        <Link
-          href={`/repos/${repo.id}`}
-          className="text-sm text-gray-500 transition-colors hover:text-fuchsia-300"
-        >
-          ← Back to {repo.owner}/{repo.name}
-        </Link>
-        <h1 className="text-2xl font-bold text-white">
-          <span className="text-gray-500">{repo.owner}/</span>
-          {repo.name} <span className="text-gray-500">settings</span>
-        </h1>
+  return (
+    <main className="mx-auto max-w-page px-6 pb-24 sm:px-10">
+      <AppHeader
+        user={session.user}
+        crumbs={[{ label: fullName, href: `/repos/${repo.id}` }, { label: "settings" }]}
+      />
+
+      <div className="py-12 sm:py-16">
+        <p className="eyebrow">{fullName}</p>
+        <h1 className="mt-3 font-serif text-5xl leading-none text-ink sm:text-6xl">Settings</h1>
       </div>
 
       {/* Analytics */}
-      <section className="card mb-6">
-        <h2 className="section-heading">
-          <span className="section-dot bg-sky-400" />
-          Analytics
-        </h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {tiles.map((t) => (
-            <div key={t.label} className="rounded-lg border border-surface-border/60 bg-surface p-3 text-center">
-              <p className={`bg-gradient-to-r ${t.color} bg-clip-text text-xl font-extrabold text-transparent`}>
-                {t.value}
-              </p>
-              <p className="mt-1 text-[11px] uppercase tracking-wide text-gray-500">{t.label}</p>
+      <section>
+        <SectionHead n="01" title="Analytics" aside={`${tokenAgg._count} cycles`} />
+        <dl className="grid grid-cols-2 border-b border-rule sm:grid-cols-4">
+          {tiles.map(([label, value], i) => (
+            <div
+              key={label}
+              className={`py-5 pr-4 ${i % 2 === 1 ? "border-l border-rule pl-4" : ""} ${
+                i % 4 !== 0 ? "sm:border-l sm:pl-4" : "sm:border-l-0 sm:pl-0"
+              } ${i >= 2 ? "border-t border-rule" : ""} ${i >= 4 ? "sm:border-t" : "sm:border-t-0"}`}
+            >
+              <dd className="font-serif text-3xl leading-none text-ink tnum">{value}</dd>
+              <dt className="eyebrow mt-2">{label}</dt>
             </div>
           ))}
-        </div>
+        </dl>
 
-        <h3 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wide text-gray-400">
-          Recent cycles
-        </h3>
+        <p className="eyebrow mb-2 mt-10">Recent cycles</p>
         {recentRuns.length === 0 ? (
-          <p className="text-sm text-gray-500">No cycles yet.</p>
+          <p className="py-4 text-[13px] text-mute">No cycles yet.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="ledger">
               <thead>
-                <tr className="border-b border-surface-border text-xs uppercase tracking-wide text-gray-500">
-                  <th className="py-2 pr-4">Idea</th>
-                  <th className="py-2 pr-4">Result</th>
-                  <th className="py-2 pr-4">Tokens</th>
-                  <th className="py-2 pr-4">Cost</th>
-                  <th className="py-2 pr-4">Duration</th>
-                  <th className="py-2">Date</th>
+                <tr>
+                  <th>Idea</th>
+                  <th>Result</th>
+                  <th className="text-right">Tokens</th>
+                  <th className="text-right">Cost</th>
+                  <th className="text-right">Duration</th>
+                  <th className="pr-0 text-right">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {recentRuns.map((run) => (
-                  <tr key={run.id} className="border-b border-surface-border/50">
-                    <td className="max-w-64 truncate py-2 pr-4 text-gray-300">
-                      {run.idea?.title ?? "(analysis)"}
-                    </td>
-                    <td className="py-2 pr-4">
+                  <tr key={run.id}>
+                    <td className="max-w-64 truncate text-ink">{run.idea?.title ?? "Analysis"}</td>
+                    <td>
                       <PhaseBadge phase={run.phase} />
                     </td>
-                    <td className="whitespace-nowrap py-2 pr-4 font-mono text-gray-400">
+                    <td className="whitespace-nowrap text-right font-mono text-[12px] text-ink-2 tnum">
                       {formatTokens(run.inputTokens)} / {formatTokens(run.outputTokens)}
                     </td>
-                    <td className="py-2 pr-4 font-mono text-gray-400">
+                    <td className="text-right font-mono text-[12px] text-ink-2 tnum">
                       ${estimateCostUsd(repo.model, run.inputTokens, run.outputTokens).toFixed(3)}
                     </td>
-                    <td className="whitespace-nowrap py-2 pr-4 text-gray-400">
+                    <td className="whitespace-nowrap text-right font-mono text-[12px] text-ink-2 tnum">
                       {run.finishedAt ? `${minutesBetween(run.startedAt, run.finishedAt)} min` : "—"}
                     </td>
-                    <td className="whitespace-nowrap py-2 text-gray-500">
+                    <td className="whitespace-nowrap pr-0 text-right font-mono text-[12px] text-mute tnum">
                       {new Date(run.startedAt).toLocaleDateString()}
                     </td>
                   </tr>
@@ -171,25 +153,24 @@ export default async function RepoSettingsPage({
       </section>
 
       {/* Settings */}
-      <section className="card">
-        <h2 className="section-heading">
-          <span className="section-dot bg-fuchsia-400" />
-          Project settings
-        </h2>
-        <RepoSettingsForm
-          repo={{
-            id: repo.id,
-            schedule: repo.schedule,
-            mergeMode: repo.mergeMode,
-            autoMergePr: repo.autoMergePr,
-            requireHumanApproval: repo.requireHumanApproval,
-            requireIdeaApproval: repo.requireIdeaApproval,
-            model: repo.model,
-            deployHookUrl: repo.deployHookUrl,
-            healthCheckUrl: repo.healthCheckUrl,
-          }}
-          models={[...AVAILABLE_MODELS]}
-        />
+      <section className="mt-16">
+        <SectionHead n="02" title="Configuration" />
+        <div className="mt-8">
+          <RepoSettingsForm
+            repo={{
+              id: repo.id,
+              schedule: repo.schedule,
+              mergeMode: repo.mergeMode,
+              autoMergePr: repo.autoMergePr,
+              requireHumanApproval: repo.requireHumanApproval,
+              requireIdeaApproval: repo.requireIdeaApproval,
+              model: repo.model,
+              deployHookUrl: repo.deployHookUrl,
+              healthCheckUrl: repo.healthCheckUrl,
+            }}
+            models={[...AVAILABLE_MODELS]}
+          />
+        </div>
       </section>
     </main>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+/** Balance and top-up controls, laid out as a single ledger line. */
 export default function BillingPanel({
   balanceUsd,
   enabled,
@@ -34,43 +35,33 @@ export default function BillingPanel({
   const low = balanceUsd <= 0.1;
 
   return (
-    <div className={`card flex flex-wrap items-center gap-x-6 gap-y-3 ${low ? "border-amber-600/50" : ""}`}>
+    <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-y border-rule py-5">
       <div>
-        <p className="text-xs uppercase tracking-wide text-gray-500">Credit balance</p>
-        <p
-          className={`font-mono text-2xl font-bold ${
-            balanceUsd > 0 ? "text-emerald-400" : "text-red-400"
-          }`}
-        >
+        <p className="eyebrow">Credit balance</p>
+        <p className={`mt-1 font-serif text-4xl leading-none tnum ${low ? "text-bad" : "text-ink"}`}>
           ${balanceUsd.toFixed(2)}
         </p>
+        {low && <p className="mt-2 text-[13px] text-warn">Balance is empty. Agents pause until you add credit.</p>}
+        {error && <p className="mt-2 text-[13px] text-bad">{error}</p>}
       </div>
       {enabled ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-400">Add credits:</span>
+          <span className="eyebrow mr-2">Add</span>
           {packs.map((amount) => (
             <button
               key={amount}
               onClick={() => buy(amount)}
               disabled={pending !== null}
-              className="btn-secondary hover:border-emerald-600"
+              className="btn-secondary btn-sm tnum"
             >
-              {pending === amount ? "Redirecting..." : `$${amount}`}
+              {pending === amount ? "Redirecting" : `$${amount}`}
             </button>
           ))}
-          <span className="text-xs text-gray-600">via Stripe · metered at cost, no markup</span>
+          <span className="eyebrow ml-2 !normal-case !tracking-normal">via Stripe, at cost</span>
         </div>
       ) : (
-        <p className="text-sm text-gray-500">
-          Billing not configured — set STRIPE_SECRET_KEY to enable credit purchases.
-        </p>
+        <p className="font-mono text-[12px] text-mute">Billing is not configured on this server.</p>
       )}
-      {low && (
-        <p className="w-full text-xs text-amber-300">
-          Your balance is empty — agents pause until you add credits.
-        </p>
-      )}
-      {error && <p className="w-full text-xs text-red-400">{error}</p>}
     </div>
   );
 }
