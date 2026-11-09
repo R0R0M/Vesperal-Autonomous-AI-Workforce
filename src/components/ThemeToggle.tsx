@@ -15,6 +15,8 @@ export default function ThemeToggle() {
   function toggle() {
     const next = document.documentElement.classList.contains("light"); // next = dark?
     document.documentElement.classList.toggle("light", !next);
+    const icon = document.getElementById("favicon") as HTMLLinkElement | null;
+    if (icon) icon.href = next ? "/icon-dark.svg" : "/icon-light.svg";
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {

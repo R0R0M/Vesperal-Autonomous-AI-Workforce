@@ -31,10 +31,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${sans.variable} ${mono.variable} ${serif.variable}`}
     >
       <head>
-        {/* Dark is the default. A stored "light" preference flips it before first paint. */}
+        <link id="favicon" rel="icon" type="image/svg+xml" href="/icon-dark.svg" />
+        {/* Dark is the default. A stored "light" preference flips the theme and the tab icon before first paint. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("theme")==="light")document.documentElement.classList.add("light")}catch(e){}`,
+            __html: `try{if(localStorage.getItem("theme")==="light"){document.documentElement.classList.add("light");document.getElementById("favicon").href="/icon-light.svg"}}catch(e){}`,
           }}
         />
       </head>
