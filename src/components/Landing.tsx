@@ -258,9 +258,9 @@ export default function Landing() {
       <footer className="border-t border-rule">
         <div className="mx-auto flex max-w-page flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <Wordmark small />
-          <p className="text-[12px] text-ink-2">
-            Set in Instrument Serif and Geist. Built on Claude.{" "}
-            <a href="mailto:roninkmehta@gmail.com" className="link">
+          <p className="text-[13px] text-ink-2">
+            Want to book a call?{" "}
+            <a href="mailto:roninkmehta@gmail.com" className="link text-ink">
               roninkmehta@gmail.com
             </a>
           </p>
