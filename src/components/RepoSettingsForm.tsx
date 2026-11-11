@@ -60,7 +60,7 @@ export default function RepoSettingsForm({
   async function onDelete() {
     if (
       !confirm(
-        "Disconnect this repository? Its history, analytics, and backlog in Foundry will be deleted. The GitHub repository itself is untouched.",
+        "Disconnect this repository? Its history, analytics, and backlog in Vesperal will be deleted. The GitHub repository itself is untouched.",
       )
     ) {
       return;
@@ -184,7 +184,7 @@ export default function RepoSettingsForm({
       <div className="border-t border-bad/40 pt-4">
         <p className="eyebrow !text-bad">Disconnect</p>
         <p className="mt-2 max-w-prose text-[13px] text-ink-2">
-          Removes this repository and all of its Foundry data: history, analytics, backlog and
+          Removes this repository and all of its Vesperal data: history, analytics, backlog and
           memory. Your code on GitHub is not affected.
         </p>
         <button type="button" className="btn-danger btn-sm mt-4" onClick={onDelete} disabled={deleting}>

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
- * Foundry design tokens.
+ * Vesperal design tokens.
  *
  * Dark is the identity; light is a complete alternate set. Every color in the
  * UI resolves to one of these channels so nothing is remapped per utility.

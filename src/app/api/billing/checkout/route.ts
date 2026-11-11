@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         price_data: {
           currency: "usd",
           product_data: {
-            name: "Foundry credits",
+            name: "Vesperal credits",
             description: "Prepaid usage credits — metered to the token, no markup.",
           },
           unit_amount: body.data.amountUsd * 100,

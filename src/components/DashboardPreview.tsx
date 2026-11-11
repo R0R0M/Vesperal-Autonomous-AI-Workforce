@@ -53,7 +53,7 @@ const F0: Row[] = [
   { t: "15:17:58", agent: "IDEATOR", kind: "brief", text: "#3 Keyboard shortcuts for study sessions → Coder" },
 ];
 const F1: Row[] = [
-  { t: "15:18:07", agent: "CODER", kind: "run", text: "git switch -c foundry/idea-0412" },
+  { t: "15:18:07", agent: "CODER", kind: "run", text: "git switch -c vesperal/idea-0412" },
   { t: "15:18:21", agent: "CODER", kind: "edit", text: "src/hooks/use-keyboard-shortcuts.ts" },
 ];
 const F2: Row[] = [
@@ -141,7 +141,7 @@ export default function DashboardPreview() {
       <div className="flex items-center justify-between gap-3 border-b border-rule-2 px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2 font-mono text-[11px]">
           <span className="h-2.5 w-2.5 rounded-sm bg-accent" aria-hidden />
-          <span className="text-ink">Foundry</span>
+          <span className="text-ink">Vesperal</span>
           <span className="text-rule-2">/</span>
           <span className="truncate text-ink-2">acme/website</span>
         </div>

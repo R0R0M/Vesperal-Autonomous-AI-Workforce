@@ -46,7 +46,7 @@ function CoderPreview() {
   return (
     <div className="space-y-1.5 font-mono text-[11px] leading-relaxed">
       <p className="text-ink-2">
-        <span className="text-mute">$ </span>git switch -c foundry/idea-0412
+        <span className="text-mute">$ </span>git switch -c vesperal/idea-0412
       </p>
       <p className="text-ink-2">
         <span className="text-mute">$ </span>edit src/hooks/use-keyboard-shortcuts.ts

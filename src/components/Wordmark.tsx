@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-/** The Foundry mark: a crucible square and the serif wordmark. */
+/** The Vesperal mark: an accent square and the serif wordmark. */
 export default function Wordmark({ href = "/", small = false }: { href?: string; small?: boolean }) {
   return (
     <Link
       href={href}
-      aria-label="Foundry home"
+      aria-label="Vesperal home"
       className="group inline-flex items-center gap-2.5 text-ink transition-opacity hover:opacity-70"
     >
       <span
@@ -15,7 +15,7 @@ export default function Wordmark({ href = "/", small = false }: { href?: string;
         <span className="absolute inset-[30%] rounded-[1px] bg-paper" />
       </span>
       <span className={`font-serif leading-none ${small ? "text-[22px]" : "text-[26px]"}`}>
-        Foundry
+        Vesperal
       </span>
     </Link>
   );

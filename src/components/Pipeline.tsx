@@ -37,7 +37,7 @@ const PHASES: Phase[] = [
       "The brief is implemented on a fresh branch inside a sandboxed workspace. Your lint, types and tests run before the Coder reports back.",
     engine: ["CODING"],
     output: [
-      ["$", "git switch -c foundry/idea-0412"],
+      ["$", "git switch -c vesperal/idea-0412"],
       ["+", "src/hooks/use-keyboard-shortcuts.ts"],
       ["~", "src/components/study/quiz-question.tsx"],
       ["$", "npm run lint && npm run typecheck   ✓"],
@@ -82,7 +82,7 @@ const PHASES: Phase[] = [
       "The branch is pushed and a pull request is opened with the change explained. If you enabled the approval gate, the cycle parks here until you decide.",
     engine: ["PUSHING", "AWAITING_APPROVAL*"],
     output: [
-      ["push", "foundry/idea-0412 → origin"],
+      ["push", "vesperal/idea-0412 → origin"],
       ["pr", "#218 Add keyboard shortcuts for study sessions"],
       ["note", "commit explained in plain English"],
     ],

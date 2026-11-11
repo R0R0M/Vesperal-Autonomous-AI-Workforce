@@ -44,7 +44,7 @@ export default function LoginPage() {
             ["Starter credit", "$1.00, no card"],
             ["Repository access", "Per-repo token, Contents and Pull requests scopes"],
             ["Stored", "AES-256-GCM, server side"],
-            ["Revoke", "Any time, from GitHub or from Foundry"],
+            ["Revoke", "Any time, from GitHub or from Vesperal"],
           ].map(([k, v]) => (
             <div key={k} className="grid grid-cols-[8rem_1fr] gap-4 py-3 text-[13px]">
               <dt className="eyebrow">{k}</dt>

@@ -13,11 +13,11 @@ const serif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Foundry", template: "%s · Foundry" },
+  title: { default: "Vesperal", template: "%s · Vesperal" },
   description:
-    "Foundry is an autonomous software company for your repository. An Ideator, a Coder and a Tester take turns on your codebase; only the Tester can ship.",
+    "Vesperal is an autonomous software company for your repository. An Ideator, a Coder and a Tester take turns on your codebase; only the Tester can ship.",
   openGraph: {
-    title: "Foundry",
+    title: "Vesperal",
     description: "The night shift for your codebase.",
     type: "website",
   },

@@ -39,7 +39,7 @@ const SCRIPT: Step[] = [
   },
   {
     phase: "CODING",
-    task: "Implementing on branch foundry/idea-0412",
+    task: "Implementing on branch vesperal/idea-0412",
     status: { ideator: "done", coder: "active", tester: "idle" },
     line: { ...IDLE, ideator: "brief sent", coder: "edit use-keyboard-shortcuts.ts" },
   },
